@@ -29,6 +29,7 @@ const producer = kafka.producer();
 producer.connect();
 const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true });
 consumer.subscribe({ topic: 'authresponse', partition: 0 });
+
 const ingresarUsuario = async (nombre, apellido, rut, correodueno, patente, premium, stock, ubicacion) => {
     try{
         var query1 =  `CREATE TABLE IF NOT EXISTS carritos(

@@ -35,32 +35,43 @@ const Authenticator = async () => {
         eachMessage: async ({message}) => {
             if(message.value){
                 console.log("Usuario con id: ", JSON.parse(message.value).id)
-                await producer.send({
-                    topic: 'authresponse',
-                    messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, error: "Contraseña incorrecta"})}],
-                    partition: 0
-                }).then(
-                    console.log("Usuario ha intentado ingresar con contraseña incorrecta.")
-                    )
+                Auth = AuthLogin(JSON.parse(message.value).mail,JSON.parse(message.value).password)
+                if (Auth){
+                    // Logeo correcto
+                }
+                else{
+                    await producer.send({
+                        topic: 'authresponse',
+                        messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, error: "Contraseña o correo incorrecto."})}],
+                        partition: 0
+                    }).then(
+                        console.log("Inicio de sesion incorrecto.")
+                        )
+                }
+                
             }
         }
     })
 }
+
+const AuthLogin = async (mail,password) => {
+    try{
+        var query = `IF EXISTS ( SELECT * FROM users WHERE mail ='`+mail+`'and password ='`+password+`');`
+        await client.query(query);
+        if (query) {
+            return true;
+          } else {
+            return false;
+          }
+        
+    } catch (error) {
+        console.log("Ha ocurrido un error en el ingreso a la base de datos.")
+        return false;
+    }
+}
+
  
 app.listen(port, () => {
     console.log(`Escuchando en puerto: ${port}`);
     Authenticator()
 });
-function Auth(){
-    // //password falsa
-    var result = {
-        error: 'Password incorrecta'
-    }
-    producer.send({
-        topic: 'authresponse',
-        messages: [{value: JSON.stringify(result)}],
-        partition: 0
-    }).then(
-        console.log("Usuario ha intentado ingresar con contraseña incorrecta.")
-        )
-}
