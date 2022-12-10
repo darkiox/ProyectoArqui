@@ -30,7 +30,7 @@ producer.connect();
 const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true });
 consumer.subscribe({ topic: 'authresponse', partition: 0 });
 
-app.get("/test", async (req,res) =>{
+app.get("/", async (req,res) =>{
     res.sendFile(path.join(__dirname, '/accounts.html'))
 })
 app.post("/login", async (req, res) =>{
@@ -43,9 +43,14 @@ app.post("/login", async (req, res) =>{
     await consumer.run({
         eachMessage: async ({ topic, partition, message }) => {
             if (JSON.parse(message.value).id == formData.id){
-                result = JSON.parse(message.value).error
+                errorresult = JSON.parse(message.value).error
+                result = JSON.parse(message.value).success
                 console.log('---- AuthResult: ', result)
-                res.send(result)
+                if(errorresult){
+                    res.send(errorresult)
+                }else{
+                    res.sendFile(path.join(__dirname, 'ventas.html'))
+                }
                 consumer.stop();
             }
         },
@@ -57,8 +62,16 @@ app.post("/login", async (req, res) =>{
     }).then(
         // console.log("Autentificando usuario con id: ", formData.id)
         )
-
-
+})
+app.get('/users', async function(request, response, next){
+    var search_query = `SELECT * FROM USERS;`;
+    var data_arr = await getDataforTable();
+    
+    console.log("data_arr: ", data_arr)
+    var output = {
+        'aaData': data_arr
+    }
+    response.json(output)
 })
 app.listen(port, () => {
     console.log(`Escuchando en puerto ${port}`);
@@ -72,4 +85,24 @@ function makeid(length) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
+}
+
+const getDataforTable = async () => {
+    var query = `SELECT * FROM USERS;`;
+    return new Promise(function (resolve, reject) {
+        client.query(query, function(err,res) {
+        if (err) {
+            return resolve([]);
+            } 
+            else {
+            if(!(res.rows.length == 0))
+            {
+                return resolve(res.rows);
+            }else{
+                return resolve([]);
+            }
+        }
+        })
+
+    })
 }

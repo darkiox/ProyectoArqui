@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login simple</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+  <style>
+    body { padding-top: 50px; background: #2d2d2d}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="text-center">Tabla de Ventas</h3>
+            <div class="table-responsive">
+              <table id="TestTable" class="table table-bordered table-sm">
+                <thead>
+                <tr>
+                    <th>Mail</th>
+                    <th>Password</th>
+                    <th>Type</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+  </div>
+    
+</body>
+</html>
+
+<script>
+    $(document).ready(function () {
+       $('#TestTable').DataTable({
+            "paging": true,
+            "pageLength": 10,
+            "processing": true,
+            "serverMethod": 'get',
+            "ajax": {
+                "url": "/users"
+            },
+                "columns":
+                    [
+                        { data: "mail" },
+                        { data: "password" },
+                        { data: "tipo" },
+                    ]
+            
+        });
+    });
+</script>

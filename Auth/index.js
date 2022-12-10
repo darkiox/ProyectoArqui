@@ -40,10 +40,10 @@ const Authenticator = async () => {
                     // Logueo correcto
                     await producer.send({
                         topic: 'authresponse',
-                        messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, error: "Inicio de sesión correcto."})}],
+                        messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, success: "Inicio de sesión correcto."})}],
                         partition: 0
                     }).then(
-                        console.log("Inicio de sesion correcto.")
+                        console.log("Inicio de sesión correcto.")
                         )
                 }
                 else{
