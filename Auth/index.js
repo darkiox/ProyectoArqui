@@ -35,9 +35,16 @@ const Authenticator = async () => {
         eachMessage: async ({message}) => {
             if(message.value){
                 console.log("Usuario con id: ", JSON.parse(message.value).id)
-                Auth = AuthLogin(JSON.parse(message.value).mail,JSON.parse(message.value).password)
+                var Auth = await AuthLogin(JSON.parse(message.value).mail,JSON.parse(message.value).password)
                 if (Auth){
-                    // Logeo correcto
+                    // Logueo correcto
+                    await producer.send({
+                        topic: 'authresponse',
+                        messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, error: "Inicio de sesión correcto."})}],
+                        partition: 0
+                    }).then(
+                        console.log("Inicio de sesion correcto.")
+                        )
                 }
                 else{
                     await producer.send({
@@ -48,26 +55,30 @@ const Authenticator = async () => {
                         console.log("Inicio de sesion incorrecto.")
                         )
                 }
-                
+
             }
         }
     })
 }
 
 const AuthLogin = async (mail,password) => {
-    try{
-        var query = `IF EXISTS ( SELECT * FROM users WHERE mail ='`+mail+`'and password ='`+password+`');`
-        client.query(query, (err, res) => {
+    var query = `SELECT * FROM users WHERE mail ='`+mail+`'AND password ='`+password+`';`
+    return new Promise(function (resolve, reject) {
+        client.query(query, function(err,res) {
         if (err) {
-            return true;
-          } else {
-            return false;
-          }
+            return resolve(false);
+            } 
+            else {
+            if(!(res.rows.length == 0))
+            {
+                return resolve(true);
+            }else{
+                return resolve(false);
+            }
+        }
         })
-    } catch (error) {
-        console.log("Ha ocurrido un error en el ingreso a la base de datos.")
-        return false;
-    }
+
+    })
 }
 
  
