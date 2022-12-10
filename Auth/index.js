@@ -57,13 +57,13 @@ const Authenticator = async () => {
 const AuthLogin = async (mail,password) => {
     try{
         var query = `IF EXISTS ( SELECT * FROM users WHERE mail ='`+mail+`'and password ='`+password+`');`
-        await client.query(query);
-        if (query) {
+        client.query(query, (err, res) => {
+        if (err) {
             return true;
           } else {
             return false;
           }
-        
+        })
     } catch (error) {
         console.log("Ha ocurrido un error en el ingreso a la base de datos.")
         return false;
