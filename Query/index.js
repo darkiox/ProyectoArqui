@@ -37,7 +37,7 @@ const QueryHandler = async () => {
                 console.log("Llego un mensaje a Queries: ", JSON.parse(message.value))
                 var id = JSON.parse(message.value).id
                 if(JSON.parse(message.value).query == "stock"){
-                    var data = await getFromDB('SELECT * FROM stock;')
+                    var data = await getFromDB('SELECT * FROM products;')
                     toKafka = {
                         id: id,
                         data: data.rows
@@ -49,6 +49,17 @@ const QueryHandler = async () => {
                     }).then(
                         console.log("Se respondió query Stock '"+ id +"' enviado a topic Query.")
                     )
+                }
+                if(JSON.parse(message.value).query == "addProduct"){
+                    var productoAdd = JSON.parse(message.value).newProduct
+                    console.log("Producto a añadir:" , productoAdd)
+                    var detailsproductoAdd = "'"+ productoAdd.nombre + "', '" + productoAdd.categoria + "'," + productoAdd.preciocompra + ',' + productoAdd.precioventa + ',' + productoAdd.stock
+                    var query = await getFromDB('INSERT INTO products(nombre,categoria,preciocompra,precioventa,stock) VALUES ('+detailsproductoAdd+');')
+                }
+                if(JSON.parse(message.value).query == "delProduct"){
+                    var skuProductoDel = JSON.parse(message.value).delProduct.sku;
+                    console.log("Producto con SKU: ", skuProductoDel, " eliminado correctamente.")
+                    var query = await getFromDB('DELETE FROM products WHERE sku = '+skuProductoDel+';')
                 }
             }
         }

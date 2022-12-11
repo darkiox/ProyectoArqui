@@ -9,6 +9,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
   <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
   <link href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <script src="https://kit.fontawesome.com/b3e10ef58e.js" crossorigin="anonymous"></script>
   <style>
     body { padding-top: 50px; background: #2d2d2d}
   </style>
@@ -32,14 +33,16 @@
       </div>
       <div class="modal-body">
         <form class="form" action="/addproduct" method="POST">
-          <label for="descripcion">Descripcion (Nombre producto):</label>
-          <input class="form-control mb-3" type="text" placeholder="Descripción" id="descripcion" name="descripcion">
+          <label for="descripcion">Nombre producto:</label>
+          <input class="form-control mb-3" type="text" placeholder="Nombre" id="nombre" name="nombre">
+          <label for="descripcion">Categoria producto:</label>
+          <input class="form-control mb-3" type="text" placeholder="Categoria" id="categoria" name="categoria">
           <label for="pcompra">Precio de Compra:</label>
-          <input class="form-control mb-3" type="number" placeholder="Precio Compra" id="pcosto" name="pcosto">
+          <input class="form-control mb-3" type="number" placeholder="Precio Compra" id="preciocompra" name="preciocompra">
           <label for="pventa">Precio de Venta:</label>
-          <input class="form-control mb-3" type="number" placeholder="Precio Venta" id="pventa" name="pvnta">
+          <input class="form-control mb-3" type="number" placeholder="Precio Venta" id="precioventa" name="precioventa">
           <label for="disponible">Stock disponible:</label>
-          <input class="form-control mb-3" type="number" placeholder="Stock Disponible" id="disponible" name="disponible">
+          <input class="form-control mb-3" type="number" placeholder="Stock Disponible" id="stock" name="stock">
           <div class="row justify-content-center mt-3">
             <div class="col-lg-6">
               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -61,14 +64,16 @@
               <table id="TestTable" class="table table-bordered table-striped">
                 <thead>
                 <tr>
-                    <th>Id Producto</th>
-                    <th>Descripcion</th>
+                    <th>SKU</th>
+                    <th>Nombre</th>
+                    <th>Categoria</th>
                     <th>Precio Compra</th>
                     <th>Precio Venta</th>
                     <th>Stock Disponible</th>
+                    <th>Acciones</th>
                   </tr>
                 </thead>
-                <tbody></tbody>
+                <tbody class="text-center"></tbody>
             </table>
             </div>
         </div>
@@ -90,11 +95,15 @@
             },
                 "columns":
                     [
-                        { data: "id_producto" },
-                        { data: "descripcion" },
-                        { data: "pcosto" },
-                        { data: "pventa" },
-                        { data: "disponible" },
+                        { data: "sku" },
+                        { data: "nombre" },
+                        { data: "categoria"},
+                        { data: "preciocompra", render: $.fn.dataTable.render.number( '.', ',', 0)},
+                        { data: "precioventa" , render: $.fn.dataTable.render.number( '.', ',', 0)},
+                        { data: "stock" },
+                        { data: null, render: function ( data, type, row ) {
+        return '<form class="form" action="/delproduct" method="POST"> <input class="d-none" type="number" value="'+row.sku+'" name="sku" id="sku"> <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button></form>';
+                }}
                       ]
             
         });

@@ -26,7 +26,7 @@ services:
     image: bitnami/postgresql:12.10.0
     container_name: db-tarea
     volumes:
-      - ./Carrito/init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./Database/init.sql:/docker-entrypoint-initdb.d/init.sql
     ports:
       - "5432:5432"
     environment:

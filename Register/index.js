@@ -16,6 +16,8 @@ const kafka = new Kafka({
 });
 const producer = kafka.producer();
 const producerStock = kafka.producer({groupId: 'producerStock'});
+const producernewProduct = kafka.producer({groupId: 'newProd'});
+producernewProduct.connect();
 producerStock.connect();
 producer.connect();
 const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true });
@@ -85,6 +87,41 @@ app.get('/stock', async function(request, response, next){
     )
 
     
+})
+app.post("/delproduct", async(req,res) =>{
+    const formData = req.body;
+    var toKafka = {
+        id: makeid(10),
+        query: "delProduct",
+        delProduct: req.body
+    }
+    console.log("Se intentará eliminar producto con SKU: ", req.body.sku)
+    await producernewProduct.send({
+        topic: 'queries',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Mensaje enviado a query.")
+    )
+    res.sendFile(path.join(__dirname, 'stock.html'))   
+})
+app.post("/addproduct", async (req, res) =>{
+    const formData = req.body;
+    id = makeid(10)
+    var toKafka = {
+        query: "addProduct",
+        id: id,
+        newProduct: formData
+    }
+    console.log("Se quiere agregar producto: ", toKafka)
+    await producernewProduct.send({
+        topic: 'queries',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Mensaje enviado a query.")
+    )
+    res.sendFile(path.join(__dirname, 'stock.html'))
 })
 app.listen(port, () => {
     console.log(`Escuchando en puerto ${port}`);
