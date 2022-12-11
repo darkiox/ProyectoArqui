@@ -36,11 +36,12 @@ const Authenticator = async () => {
             if(message.value){
                 console.log("Usuario con id: ", JSON.parse(message.value).id)
                 var Auth = await AuthLogin(JSON.parse(message.value).mail,JSON.parse(message.value).password)
-                if (Auth){
+                console.log("Tipo de usuario ingresando: ", Auth[1])
+                if (Auth[0]){
                     // Logueo correcto
                     await producer.send({
                         topic: 'authresponse',
-                        messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, success: "Inicio de sesión correcto."})}],
+                        messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, success: "Inicio de sesión correcto.", tipo: Auth[1]})}],
                         partition: 0
                     }).then(
                         console.log("Inicio de sesión correcto.")
@@ -71,7 +72,7 @@ const AuthLogin = async (mail,password) => {
             else {
             if(!(res.rows.length == 0))
             {
-                return resolve(true);
+                return resolve([true, res.rows[0].tipo]);
             }else{
                 return resolve(false);
             }

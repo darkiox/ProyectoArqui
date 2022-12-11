@@ -2,21 +2,10 @@ const express = require("express");
 const app = express();
 
 const { Kafka } = require('kafkajs')
-const { Client } = require('pg')
+
 const path = require('path');
 const bodyParser = require('body-parser')
 
-const client = new Client({
-    database: 'tarea',
-    host: 'db-tarea',
-    user: 'postgres',
-    password: 'postgres',
-    port: 5432,
-})
-client.connect(function(err){
-    if (err) console.log("Error al conectar a DB");
-    console.log("Conectado a DB.")
-})
 const port = process.env.PORT;
 
 app.use(express.json());
@@ -26,8 +15,12 @@ const kafka = new Kafka({
     brokers: [process.env.kafkaHost]
 });
 const producer = kafka.producer();
+const producerStock = kafka.producer({groupId: 'producerStock'});
+producerStock.connect();
 producer.connect();
 const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true });
+const consumerStock = kafka.consumer({groupId: 'consumerStock', fromBeginning: true })
+consumerStock.subscribe({topic: 'query', partition: 0})
 consumer.subscribe({ topic: 'authresponse', partition: 0 });
 
 app.get("/", async (req,res) =>{
@@ -63,15 +56,35 @@ app.post("/login", async (req, res) =>{
         // console.log("Autentificando usuario con id: ", formData.id)
         )
 })
-app.get('/users', async function(request, response, next){
-    var search_query = `SELECT * FROM stock;`;
-    var data_arr = await getDataforTable(search_query);
-    
-    console.log("data_arr: ", data_arr)
-    var output = {
-        'aaData': data_arr
+
+app.get('/stock', async function(request, response, next){
+    var toKafka = {
+        id: makeid(10),
+        query: "stock"
     }
-    response.json(output)
+    await consumerStock.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            console.log("Se recibió respuesta de query id '" +id + "' : ", JSON.parse(message.value))
+            if (JSON.parse(message.value).id == toKafka.id){
+                var data = JSON.parse(message.value).data
+                var output = {
+                    'aaData': data
+                }
+                consumerStock.stop();
+                response.json(output)
+            }
+        },
+    })
+    console.log("Se intenta enviar a queries: ", toKafka)
+    await producerStock.send({
+        topic: 'queries',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Query enviada para pedir Stock.")
+    )
+
+    
 })
 app.listen(port, () => {
     console.log(`Escuchando en puerto ${port}`);
@@ -85,24 +98,4 @@ function makeid(length) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
-}
-
-const getDataforTable = async (query) => {
-
-    return new Promise(function (resolve, reject) {
-        client.query(query, function(err,res) {
-        if (err) {
-            return resolve([]);
-            } 
-            else {
-            if(!(res.rows.length == 0))
-            {
-                return resolve(res.rows);
-            }else{
-                return resolve([]);
-            }
-        }
-        })
-
-    })
 }
