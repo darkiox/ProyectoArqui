@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login simple</title>
+  <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+  <link href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <style>
+    body { padding-top: 50px; background: #2d2d2d}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="text-center">Tabla de Stock</h3>
+            <div class="row align-items-end mb-3">
+              <div class="col-lg-4">
+                <button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">Agregar producto</button>
+                        <!-- Modal -->
+<div class="modal" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Agregar un producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="form" action="/addproduct" method="POST">
+          <label for="descripcion">Descripcion (Nombre producto):</label>
+          <input class="form-control mb-3" type="text" placeholder="Descripción" id="descripcion" name="descripcion">
+          <label for="pcompra">Precio de Compra:</label>
+          <input class="form-control mb-3" type="number" placeholder="Precio Compra" id="pcosto" name="pcosto">
+          <label for="pventa">Precio de Venta:</label>
+          <input class="form-control mb-3" type="number" placeholder="Precio Venta" id="pventa" name="pvnta">
+          <label for="disponible">Stock disponible:</label>
+          <input class="form-control mb-3" type="number" placeholder="Stock Disponible" id="disponible" name="disponible">
+          <div class="row justify-content-center mt-3">
+            <div class="col-lg-6">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+            <div class="col-lg-6 d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary text-center" data-bs-dismiss="modal">
+                  Agregar producto
+              </button>
+            </div>
+          </div>
+      </form>
+      </div>
+    </div>
+  </div>
+</div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table id="TestTable" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>Id Producto</th>
+                    <th>Descripcion</th>
+                    <th>Precio Compra</th>
+                    <th>Precio Venta</th>
+                    <th>Stock Disponible</th>
+                  </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+  </div>
+    
+</body>
+</html>
+
+<script>
+    $(document).ready(function () {
+       $('#TestTable').DataTable({
+            "paging": true,
+            "pageLength": 10,
+            "processing": true,
+            "serverMethod": 'get',
+            "ajax": {
+                "url": "/users"
+            },
+                "columns":
+                    [
+                        { data: "id_producto" },
+                        { data: "descripcion" },
+                        { data: "pcosto" },
+                        { data: "pventa" },
+                        { data: "disponible" },
+                      ]
+            
+        });
+    });
+</script>

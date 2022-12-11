@@ -47,9 +47,9 @@ app.post("/login", async (req, res) =>{
                 result = JSON.parse(message.value).success
                 console.log('---- AuthResult: ', result)
                 if(errorresult){
-                    res.send(errorresult)
+                    res.send(errorresult + '<br><a href="/">Volver atrás</a>')
                 }else{
-                    res.sendFile(path.join(__dirname, 'ventas.html'))
+                    res.sendFile(path.join(__dirname, 'stock.html'))
                 }
                 consumer.stop();
             }
@@ -64,8 +64,8 @@ app.post("/login", async (req, res) =>{
         )
 })
 app.get('/users', async function(request, response, next){
-    var search_query = `SELECT * FROM USERS;`;
-    var data_arr = await getDataforTable();
+    var search_query = `SELECT * FROM stock;`;
+    var data_arr = await getDataforTable(search_query);
     
     console.log("data_arr: ", data_arr)
     var output = {
@@ -87,8 +87,8 @@ function makeid(length) {
     return result;
 }
 
-const getDataforTable = async () => {
-    var query = `SELECT * FROM USERS;`;
+const getDataforTable = async (query) => {
+
     return new Promise(function (resolve, reject) {
         client.query(query, function(err,res) {
         if (err) {
