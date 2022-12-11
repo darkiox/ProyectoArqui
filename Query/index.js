@@ -74,6 +74,35 @@ const QueryHandler = async () => {
                     `
                     var query = await getFromDB(updateQuery)
                 }
+                if(JSON.parse(message.value).query == "sales"){
+                    var data = await getFromDB('SELECT * FROM sales WHERE fecha <= DATEADD(DAY,15,'+JSON.parse(message.value).sales.date+') and DATEADD(DAY,-15,'+JSON.parse(message.value).sales.date+' <= fecha;')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query Sales '"+ id +"' enviado a topic Query.")
+                    )
+                }
+                if(JSON.parse(message.value).query == "purchases"){
+                    var data = await getFromDB('SELECT * FROM purchases WHERE fecha <= DATEADD(DAY,15,'+JSON.parse(message.value).purchases.date+') and DATEADD(DAY,-15,'+JSON.parse(message.value).sales.date+' <= fecha;')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query purchases '"+ id +"' enviado a topic Query.")
+                    )
+                }
+
             }
         }
     })
