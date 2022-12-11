@@ -123,6 +123,23 @@ app.post("/addproduct", async (req, res) =>{
     )
     res.sendFile(path.join(__dirname, 'stock.html'))
 })
+app.post('/editproduct',async (req, res) => {
+    const formData = req.body;
+    id = makeid(10);
+    var toKafka = {
+        query: "editProduct",
+        id: id,
+        editProduct: formData
+    }
+    await producernewProduct.send({
+        topic: 'queries',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Mensaje enviado a query.")
+    )
+    res.sendFile(path.join(__dirname, 'stock.html'))
+});
 app.listen(port, () => {
     console.log(`Escuchando en puerto ${port}`);
 });

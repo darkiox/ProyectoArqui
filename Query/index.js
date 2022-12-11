@@ -61,6 +61,19 @@ const QueryHandler = async () => {
                     console.log("Producto con SKU: ", skuProductoDel, " eliminado correctamente.")
                     var query = await getFromDB('DELETE FROM products WHERE sku = '+skuProductoDel+';')
                 }
+                if(JSON.parse(message.value).query == "editProduct"){
+                    console.log("Editando producto con SKU: ", JSON.parse(message.value).editProduct.sku)
+                    var updateQuery = `
+                    UPDATE products
+                    SET nombre = '`+JSON.parse(message.value).editProduct.nombre+`',
+                    categoria = '`+JSON.parse(message.value).editProduct.categoria+`',
+                    preciocompra = '`+JSON.parse(message.value).editProduct.preciocompra+`',
+                    precioventa = '`+JSON.parse(message.value).editProduct.precioventa+`',
+                    stock = '`+JSON.parse(message.value).editProduct.stock+`'
+                    WHERE sku = `+JSON.parse(message.value).editProduct.sku+`
+                    `
+                    var query = await getFromDB(updateQuery)
+                }
             }
         }
     })
@@ -70,7 +83,6 @@ const getFromDB = async (query) => {
         client.query(query, function(err,res) {
             return resolve(res)
         })
-
     })
 }
  

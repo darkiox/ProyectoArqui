@@ -22,9 +22,9 @@
             <h3 class="text-center">Tabla de Stock</h3>
             <div class="row align-items-end mb-3">
               <div class="col-lg-4">
-                <button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#exampleModal">Agregar producto</button>
+                <button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#AddModal">Agregar producto</button>
                         <!-- Modal -->
-<div class="modal" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal" id="AddModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -102,7 +102,47 @@
                         { data: "precioventa" , render: $.fn.dataTable.render.number( '.', ',', 0)},
                         { data: "stock" },
                         { data: null, render: function ( data, type, row ) {
-        return '<form class="form" action="/delproduct" method="POST"> <input class="d-none" type="number" value="'+row.sku+'" name="sku" id="sku"> <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button></form>';
+        return `<div class="row"><div class="col"><form class="form" action="/delproduct" method="POST"> <input class="d-none" type="number" value="`+row.sku+`" name="sku" id="sku"> <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button></form></div>
+        <div class="col"><button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#editModal`+row.sku+`"><i class="fa-solid fa-wrench"></i></button></div>
+                        <!-- Modal -->
+<div class="modal" id="editModal`+row.sku+`" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Editar un producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="form" action="/editproduct" method="POST">
+          <input class="d-none" type="number" value="`+row.sku+`" id="sku" name="sku">
+          <label for="descripcion">Nombre producto:</label>
+          <input class="form-control mb-3" type="text" placeholder="Nombre" value=`+row.nombre+` id="nombre" name="nombre">
+          <label for="descripcion">Categoria producto:</label>
+          <input class="form-control mb-3" type="text" placeholder="Categoria" value=`+row.categoria+` id="categoria" name="categoria">
+          <label for="pcompra">Precio de Compra:</label>
+          <input class="form-control mb-3" type="number" placeholder="Precio Compra" value=`+row.preciocompra+` id="preciocompra" name="preciocompra">
+          <label for="pventa">Precio de Venta:</label>
+          <input class="form-control mb-3" type="number" placeholder="Precio Venta" value=`+row.precioventa+` id="precioventa" name="precioventa">
+          <label for="disponible">Stock disponible:</label>
+          <input class="form-control mb-3" type="number" placeholder="Stock Disponible" value=`+row.stock+` id="stock" name="stock">
+          <div class="row justify-content-center mt-3">
+            <div class="col-lg-6">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+            <div class="col-lg-6 d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary text-center" data-bs-dismiss="modal">
+                  Editar producto
+              </button>
+            </div>
+          </div>
+      </form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+        
+        `;
                 }}
                       ]
             
