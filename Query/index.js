@@ -102,6 +102,34 @@ const QueryHandler = async () => {
                         console.log("Se respondió query purchases '"+ id +"' enviado a topic Query.")
                     )
                 }
+                if(JSON.parse(message.value).query == "totalSales"){
+                    var data = await getFromDB('SELECT SUM(valortotal) FROM sales WHERE fecha <= DATEADD(DAY,15,'+JSON.parse(message.value).sales.date+') and DATEADD(DAY,-15,'+JSON.parse(message.value).sales.date+' <= fecha;')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query totalSales '"+ id +"' enviado a topic Query.")
+                    )
+                }
+                if(JSON.parse(message.value).query == "totalPurchases"){
+                    var data = await getFromDB('SELECT SUM(valortotal) FROM purchases WHERE fecha <= DATEADD(DAY,15,'+JSON.parse(message.value).purchases.date+') and DATEADD(DAY,-15,'+JSON.parse(message.value).sales.date+' <= fecha;')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query totalPurchases '"+ id +"' enviado a topic Query.")
+                    )
+                }
 
             }
         }
