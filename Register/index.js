@@ -1,10 +1,16 @@
 const express = require("express");
 const app = express();
-
+const parse = require('csv-parse').parse
+const papa = require('papaparse');
+const os = require('os')
+const multer  = require('multer')
+const upload = multer({ dest: os.tmpdir() })
+const fs = require('fs')
 const { Kafka } = require('kafkajs')
 
 const path = require('path');
-const bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const { DataRowMessage } = require("pg-protocol/dist/messages");
 
 const port = process.env.PORT;
 
@@ -28,6 +34,33 @@ consumer.subscribe({ topic: 'authresponse', partition: 0 });
 app.get("/", async (req,res) =>{
     res.sendFile(path.join(__dirname, '/accounts.html'))
 })
+
+app.post('/read', upload.single('file'), async (req, res) => {
+    console.log("Leyendo CSV")
+    const file = req.file
+    var resultado = [];
+    const data = fs.readFileSync(file.path)
+    const data2 = fs.createReadStream(file.path)
+
+    function enviarJSON(data) {
+        console.log(data);
+        res.json({data})
+    }
+    
+    function parseData(callBack) {
+        papa.parse(data2, {
+            header: true,
+            download: true,
+            dynamicTyping: true,
+            complete: function(results) {
+                callBack(results.data);
+            }
+        });
+    }
+    
+    parseData(enviarJSON);
+  })
+
 app.post("/login", async (req, res) =>{
     const formData = req.body;
     id = makeid(10)
