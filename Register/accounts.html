@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login simple</title>
+  <title>Login</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
   <style>
     body { padding-top: 50px; background: #2d2d2d}
   </style>
@@ -17,13 +18,32 @@
             <div class="row justify-content-center">
                 <div class="col-lg-6">
                     <form class="form" action="/login" method="POST">
-                        <input class="form-control" type="text" placeholder="Correo electrónico" id="mail" name="mail">
+                        <input class="form-control" type="text" onkeyup="disableButton()" placeholder="Correo electrónico" id="mail" name="mail">
                         <br>
-                        <input class="form-control" type="password" placeholder="Contraseña" id="password" name="password">
+                        <input class="form-control" type="password" onkeyup="disableButton()" placeholder="Contraseña" id="password" name="password">
                         <div class="row justify-content-center mt-3">
-                            <button type="submit" class="btn btn-primary text-center">
+                            <button type="submit" class="btn btn-primary text-center" disabled id="loginButton" onclick="showAlert()">
                                 Iniciar sesión
                             </button>
+                            <script>
+                            function disableButton(){
+                            const mailInput = document.getElementById('mail').value
+                            const passwordInput = document.getElementById('password').value
+                            const button = document.getElementById('loginButton')
+                            if(mailInput && passwordInput){
+                              button.disabled = false;
+                            }else{
+                              button.disabled = true;
+                            }
+                            }
+                            function showAlert(){
+                              swal({
+                                title: "Iniciando sesión...",
+                                text: "Por favor espere",
+                                icon: "info",
+                              });
+                            }
+                            </script>
                         </div>
                     </form>
                 </div>

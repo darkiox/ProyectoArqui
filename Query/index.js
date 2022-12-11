@@ -89,7 +89,7 @@ const QueryHandler = async () => {
                     )
                 }
                 if(JSON.parse(message.value).query == "purchases"){
-                    var data = await getFromDB('SELECT * FROM purchases WHERE fecha <= '+JSON.parse(message.value).purchases.finaldate+' and '+JSON.parse(message.value).sales.startdate+' <= fecha;')
+                    var data = await getFromDB("SELECT * FROM purchases WHERE fecha <= '"+JSON.parse(message.value).purchases.finaldate+"' and '"+JSON.parse(message.value).sales.startdate+"' <= fecha;")
                     toKafka = {
                         id: id,
                         data: data.rows

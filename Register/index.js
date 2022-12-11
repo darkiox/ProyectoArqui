@@ -27,7 +27,9 @@ producernewProduct.connect();
 producerStock.connect();
 producer.connect();
 const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true });
-const consumerStock = kafka.consumer({groupId: 'consumerStock', fromBeginning: true })
+const consumerStock = kafka.consumer({groupId: 'consumerStock', fromBeginning: true });
+const consumerSales = kafka.consumer({groupId: 'consumerSales', fromBeginning: true });
+consumerSales.subscribe({topic: 'saleresponse', partition: 0})
 consumerStock.subscribe({topic: 'query', partition: 0})
 consumer.subscribe({ topic: 'authresponse', partition: 0 });
 
@@ -61,6 +63,34 @@ app.post('/read', upload.single('file'), async (req, res) => {
     parseData(enviarJSON);
   })
 
+  app.post('/sales', async (req, res) => {
+    var fechas = req.body
+    fechas.id = makeid(10);
+    fechas.query = "sales"
+    await consumerSales.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            console.log("Llego mensaje a saleresponse")
+            console.log(JSON.parse(message.value).id, " == ", fechas.id)
+            if (JSON.parse(message.value).id == fechas.id){
+                var data = JSON.parse(message.value).data
+                console.log("data: ", data)
+                var output = {
+                    'aaData': data
+                }
+                res.json(output)
+                consumer.stop();
+            }
+        },
+    })
+    await producer.send({
+        topic: 'salequery',
+        messages: [{value: JSON.stringify(fechas)}],
+        partition: 0
+    }).then(
+        // console.log("Autentificando usuario con id: ", formData.id)
+        )
+  })
+
 app.post("/login", async (req, res) =>{
     const formData = req.body;
     id = makeid(10)
@@ -75,9 +105,16 @@ app.post("/login", async (req, res) =>{
                 result = JSON.parse(message.value).success
                 console.log('---- AuthResult: ', result)
                 if(errorresult){
-                    res.send(errorresult + '<br><a href="/">Volver atrás</a>')
+                    //res.send(errorresult + '<br><a href="/">Volver atrás</a>')
+                    res.json({error: errorresult})
                 }else{
-                    res.sendFile(path.join(__dirname, 'stock.html'))
+                    switch(JSON.parse(message.value).tipo){
+                        case 0:
+                            res.sendFile(path.join(__dirname, 'stock.html'))
+                            break;
+                        case 1:
+                            res.sendFile(path.join(__dirname, 'ventas.html'))
+                    }
                 }
                 consumer.stop();
             }

@@ -44,7 +44,7 @@ services:
       PGADMIN_DEFAULT_PASSWORD: postgres
     ports:
       - "8080:80"
-#Producer
+#Client
   register:
     build:
       context: ./Register/
@@ -62,8 +62,7 @@ services:
     ports:
       - 3000:3000
 
-
-# #Consumers
+#Services
   auth:
     build:
       context: ./Auth/
@@ -97,3 +96,20 @@ services:
       kafkaHost: kafka:9092
     ports:
       - 1235:3000
+
+  sales:
+    build:
+      context: ./Sales/
+      dockerfile: Dockerfile 
+    restart: always
+    volumes:
+      - ./Sales/:/home/node
+    depends_on:
+      - zookeeper
+      - kafka
+      - database
+    environment:
+      PORT: 3000
+      kafkaHost: kafka:9092
+    ports:
+      - 1236:3000

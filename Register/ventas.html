@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Ventas</title>
+  <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+  <link href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <script src="https://kit.fontawesome.com/b3e10ef58e.js" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/js/bootstrap-datepicker.min.js" integrity="sha512-T/tUfKSV1bihCnd+MxKD0Hm1uBBroVYBOYSk1knyvQ9VyZJpc/ALb4P0r6ubwVPSGB2GvjeoMAJJImBG12TiaQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.9.0/css/bootstrap-datepicker.min.css" integrity="sha512-mSYUmp1HYZDFaVKK//63EcZq4iFWFjxSL+Z3T/aCt4IO9Cejm03q3NKKYN6pFQzY0SBOr8h+eCIAZHPXcpZaNw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+  <style>
+    body { padding-top: 50px; background: #2d2d2d}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="text-center">Ventas</h3>
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                  <div class="form">
+                    <div class="row">
+                      <div class="col-lg-5">
+                        <label>Fecha inicio:</label>
+                        <input class="form-control datepicker" onchange="disableButton()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechainicio">
+                      </div>
+                      <div class="col-lg-5">
+                        <label>Fecha fin:</label>
+                        <input class="form-control datepicker" onchange="disableButton()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechafin">
+                      </div>
+                      <div class="col-lg-2 d-flex align-items-end">
+                        <button class="btn btn-primary" disabled id="obtainSales" onclick="getSales()">Obtener</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <table id="salesTable"></table>
+            </div>
+        </div>
+    </div>
+  </div>
+    
+</body>
+<script>
+  $('.datepicker').datepicker();
+  function disableButton(txt) {
+    const fechaInicioInput = document.getElementById('fechainicio').value
+    const fechaFinInput = document.getElementById('fechafin').value
+    const button = document.getElementById('obtainSales')
+    if(fechaInicioInput && fechaFinInput){
+      button.disabled = false;
+    }else{
+      button.disabled = true;
+    }
+  }
+  function getSales(){
+    const fechaInicioInput = document.getElementById('fechainicio').value
+    const fechaFinInput = document.getElementById('fechafin').value
+    console.log(fechaInicioInput)
+    console.log(fechaFinInput)
+      fetch('/sales', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          "startdate": fechaInicioInput,
+          "finaldate": fechaFinInput
+        })
+      })
+      .then(function(response){return response.json()})
+      .then(({ data }) => {
+        swal({
+                title: "Datos obtenidos",
+                icon: "success",
+                timer: 5000
+                });
+        console.log("data: ", data)
+        var csvTable = $('#salesTable').DataTable()
+        csvTable.rows.add(data);
+        // if (data.length) {
+        //   var csvTable = $('#salesTable').DataTable()
+        //   csvTable.rows.add(arrayofArrays).draw()
+        // } else {
+        //   alert('No existen ventas en el periodo.')
+        // }
+      })
+      .catch((e) => swal({
+                title: "Error!",
+                text: "No se han encontrado datos, o ha ocurrido un error inesperado.",
+                icon: "danger",
+                }))
+    }
+  
+  </script>
+</html>
