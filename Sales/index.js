@@ -34,14 +34,15 @@ const QueryHandler = async () => {
     consumer.run({
         eachMessage: async ({message}) => {
             if(message.value){
-                console.log("Llego un mensaje a Salequery: ", JSON.parse(message.value))
-                console.log(JSON.parse(message.value))
+                console.log("Llego un mensaje a Salequery")
                 var id = JSON.parse(message.value).id
-                console.log(id)
                 if(JSON.parse(message.value).query == "sales"){
-                    var data = await getFromDB("SELECT * FROM sales WHERE fecha <= '"+JSON.parse(message.value).finaldate+"' and '"+JSON.parse(message.value).startdate+"' <= fecha;")
+                    var query = `SELECT * FROM purchases
+                                 WHERE fecha BETWEEN '`+JSON.parse(message.value).startdate+`'
+                                 AND '`+JSON.parse(message.value).finaldate+`';`  
+                    var data = await getFromDB(query)
                     toKafka = {
-                        id: id,
+                        id: JSON.parse(message.value).id,
                         data: data.rows
                     }
                     console.log("Datos a responder:", data.rows)
@@ -54,6 +55,7 @@ const QueryHandler = async () => {
                     )
                 }
                 if(JSON.parse(message.value).query == "purchases"){
+                    
                     var data = await getFromDB('SELECT * FROM purchases WHERE fecha <= DATEADD(DAY,'+JSON.parse(message.value).purchases.days+','+JSON.parse(message.value).purchases.date+') and DATEADD(DAY,-'+JSON.parse(message.value).purchases.days+','+JSON.parse(message.value).sales.date+' <= fecha;')
                     toKafka = {
                         id: id,

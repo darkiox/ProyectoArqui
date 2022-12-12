@@ -41,7 +41,18 @@
                     </div>
                   </div>
                 </div>
-                <table id="salesTable"></table>
+                <table id="salesTable" class="mt-5 table table-bordered table-striped">
+                  <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>SKU</th>
+                        <th>Cantidad</th>
+                        <th>Valor</th>
+                        <th>Valor total</th>
+                        <th>Fecha</th>
+                      </tr>
+                    </thead>
+                </table>
             </div>
         </div>
     </div>
@@ -61,10 +72,15 @@
     }
   }
   function getSales(){
+    var csvTable = $('#salesTable').DataTable()
+    csvTable.clear()
+    swal({
+                title: "Obteniendo datos...",
+                text: "Por favor espere.",
+                icon: "info",
+                });
     const fechaInicioInput = document.getElementById('fechainicio').value
     const fechaFinInput = document.getElementById('fechafin').value
-    console.log(fechaInicioInput)
-    console.log(fechaFinInput)
       fetch('/sales', {
         method: 'POST',
         headers: {"Content-Type": "application/json"},
@@ -73,28 +89,31 @@
           "finaldate": fechaFinInput
         })
       })
-      .then(function(response){return response.json()})
-      .then(({ data }) => {
-        swal({
+      .then((response) => response.json())
+      .then(function(data) {
+        var arrayofArrays = data.map(function(obj){
+          return [...Object.values(obj)]
+        })
+        for(let i = 0;i<arrayofArrays.length;i++){
+          arrayofArrays[i][5] = arrayofArrays[i][5].slice(0,10)
+        }
+        if (data.length) {
+          swal({
                 title: "Datos obtenidos",
                 icon: "success",
                 timer: 5000
                 });
-        console.log("data: ", data)
-        var csvTable = $('#salesTable').DataTable()
-        csvTable.rows.add(data);
-        // if (data.length) {
-        //   var csvTable = $('#salesTable').DataTable()
-        //   csvTable.rows.add(arrayofArrays).draw()
-        // } else {
-        //   alert('No existen ventas en el periodo.')
-        // }
+          
+          csvTable.clear().draw()
+          csvTable.rows.add(arrayofArrays).draw()
+        } else {
+          swal({
+                title: "No se han encontrado registros.",
+                type: "question",
+                timer: 5000
+                });
+        }
       })
-      .catch((e) => swal({
-                title: "Error!",
-                text: "No se han encontrado datos, o ha ocurrido un error inesperado.",
-                icon: "danger",
-                }))
     }
   
   </script>

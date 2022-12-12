@@ -65,20 +65,18 @@ app.post('/read', upload.single('file'), async (req, res) => {
 
   app.post('/sales', async (req, res) => {
     var fechas = req.body
-    fechas.id = makeid(10);
+    var id = makeid(10)
+    fechas.id = id;
+    console.log("se enviará id: ", fechas.id)
     fechas.query = "sales"
     await consumerSales.run({
         eachMessage: async ({ topic, partition, message }) => {
             console.log("Llego mensaje a saleresponse")
-            console.log(JSON.parse(message.value).id, " == ", fechas.id)
-            if (JSON.parse(message.value).id == fechas.id){
+            if (fechas.id == JSON.parse(message.value).id){
                 var data = JSON.parse(message.value).data
-                console.log("data: ", data)
-                var output = {
-                    'aaData': data
-                }
-                res.json(output)
-                consumer.stop();
+                //console.log("data: ", data)
+                res.json(data)
+                consumerSales.stop();
             }
         },
     })
@@ -105,8 +103,24 @@ app.post("/login", async (req, res) =>{
                 result = JSON.parse(message.value).success
                 console.log('---- AuthResult: ', result)
                 if(errorresult){
-                    //res.send(errorresult + '<br><a href="/">Volver atrás</a>')
-                    res.json({error: errorresult})
+                    res.send(`
+                    <body style="background: #2d2d2d; display:flex; justify-content:center;">
+                    <div style="padding: 100px; border-radius:20px; background: #fff; text-align:center; width: 40%; height:30%; margin-top:40px;">
+                    <h1>`+errorresult + `</h1>
+                    <br>
+                    <a style="margin-top:40px;
+                    display: inline-block;
+                    font-weight: 400;
+                    border: 1px solid transparent;
+                    padding: 0.375rem 0.75rem;
+                    font-size: 1rem;
+                    line-height: 1.5;
+                    border-radius: 0.25rem;
+                    color: #fff;
+                    background-color: #007bff;
+                    border-color: #007bff;" href="/">Volver atrás</a>
+                    </div>
+                    </body>`)
                 }else{
                     switch(JSON.parse(message.value).tipo){
                         case 0:

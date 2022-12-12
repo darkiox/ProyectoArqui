@@ -68,7 +68,6 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                       </div>
                       <div class="modal-body">
-                        <h1>Read CSV</h1>
                         <label for="file">Seleccionar archivo:</label>
                         <div class="row mb-3">
                           <div class="col-lg-8">
@@ -127,6 +126,9 @@
     integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
   <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
   <script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
     const fileInput = document.getElementById('file')
     const submitFile = document.getElementById('submitFile')
     let file = null
@@ -181,8 +183,8 @@
                         { data: "precioventa" , render: $.fn.dataTable.render.number( '.', ',', 0)},
                         { data: "stock" },
                         { data: null, render: function ( data, type, row ) {
-        return `<div class="row"><div class="col"><form class="form" action="/delproduct" method="POST"> <input class="d-none" type="number" value="`+row.sku+`" name="sku" id="sku"> <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash-can"></i></button></form></div>
-        <div class="col"><button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#editModal`+row.sku+`"><i class="fa-solid fa-wrench"></i></button></div>
+        return `<div class="row"><div class="col"><form class="form" action="/delproduct" method="POST"> <input class="d-none" type="number" value="`+row.sku+`" name="sku" id="sku"> <button type="submit" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button></form></div>
+        <div class="col"><button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#editModal`+row.sku+`" data-toggle="tooltip" data-placement="top" title="Editar"><i class="fa-solid fa-wrench"></i></button></div>
                         <!-- Modal -->
 <div class="modal" id="editModal`+row.sku+`" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
   <div class="modal-dialog">
