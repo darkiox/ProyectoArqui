@@ -75,7 +75,7 @@ const QueryHandler = async () => {
                     var query = await getFromDB(updateQuery)
                 }
                 if(JSON.parse(message.value).query == "sales"){
-                    var data = await getFromDB('SELECT * FROM sales WHERE fecha <= '+JSON.parse(message.value).sales.finaldate+' and '+JSON.parse(message.value).sales.startdate+' <= fecha;')
+                    var data = await getFromDB('SELECT * FROM sales WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
                     toKafka = {
                         id: id,
                         data: data.rows
@@ -89,7 +89,7 @@ const QueryHandler = async () => {
                     )
                 }
                 if(JSON.parse(message.value).query == "purchases"){
-                    var data = await getFromDB("SELECT * FROM purchases WHERE fecha <= '"+JSON.parse(message.value).purchases.finaldate+"' and '"+JSON.parse(message.value).sales.startdate+"' <= fecha;")
+                    var data = await getFromDB("SELECT * FROM purchases WHERE fecha BETWEEN "+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
                     toKafka = {
                         id: id,
                         data: data.rows
@@ -103,7 +103,7 @@ const QueryHandler = async () => {
                     )
                 }
                 if(JSON.parse(message.value).query == "totalSales"){
-                    var data = await getFromDB('SELECT SUM(valortotal) FROM sales WHERE fecha <= '+JSON.parse(message.value).sales.finaldate+' and '+JSON.parse(message.value).sales.startdate+' <= fecha;')
+                    var data = await getFromDB('SELECT SUM(valortotal) FROM sales WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
                     toKafka = {
                         id: id,
                         data: data.rows
@@ -117,7 +117,7 @@ const QueryHandler = async () => {
                     )
                 }
                 if(JSON.parse(message.value).query == "totalPurchases"){
-                    var data = await getFromDB('SELECT SUM(valortotal) FROM purchases WHERE fecha <= '+JSON.parse(message.value).purchases.finaldate+' and '+JSON.parse(message.value).sales.startdate+' <= fecha;')
+                    var data = await getFromDB('SELECT SUM(valortotal) FROM purchases WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
                     toKafka = {
                         id: id,
                         data: data.rows
