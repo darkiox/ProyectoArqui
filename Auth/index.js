@@ -95,12 +95,12 @@ const UsersManagment = async () => {
                     var query = await getFromDB('INSERT INTO users(nombre,apellido,mail,password,tipo) VALUES ('+detailsuserAdd+');')
                 }
                 if(JSON.parse(message.value).query == "delUser"){
-                    var mailUsuarioDel = JSON.parse(message.value).delUser.mail;
-                    console.log("Usuario de mail: ", mailUsuarioDel, " eliminado correctamente.")
-                    var query = await getFromDB('DELETE FROM users WHERE mail = '+mailUsuarioDel+';')
+                    var IDUsuarioDel = JSON.parse(message.value).delUser.id;
+                    console.log("Usuario de id: ", mailUsuarioDel, " eliminado correctamente.")
+                    var query = await getFromDB('DELETE FROM users WHERE id = '+IDUsuarioDel+';')
                 }
                 if(JSON.parse(message.value).query == "editUser"){
-                    console.log("Editando usuario de mail: ", JSON.parse(message.value).editUser.mail)
+                    console.log("Editando usuario de id: ", JSON.parse(message.value).editUser.id)
                     var updateUser = `
                     UPDATE users
                     SET nombre = '`+JSON.parse(message.value).editUser.nombre+`',
@@ -108,7 +108,7 @@ const UsersManagment = async () => {
                     mail = '`+JSON.parse(message.value).editUser.mail+`',
                     password = '`+JSON.parse(message.value).editUser.password+`',
                     tipo = '`+JSON.parse(message.value).editUser.tipo+`'
-                    WHERE mail = `+JSON.parse(message.value).editUser.mail+`
+                    WHERE id = `+JSON.parse(message.value).editUser.id+`
                     `
                     var query = await getFromDB(updateUser)
                 }    

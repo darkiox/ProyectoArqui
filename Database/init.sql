@@ -1,4 +1,4 @@
-CREATE TABLE IF NOT EXISTS users(nombre VARCHAR(50), apellido VARCHAR(50), mail VARCHAR(200), password VARCHAR(32), tipo INT);
+CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY,nombre VARCHAR(50), apellido VARCHAR(50), mail VARCHAR(200), password VARCHAR(32), tipo INT);
 CREATE TABLE IF NOT EXISTS products(sku SERIAL PRIMARY KEY, nombre VARCHAR(50), categoria VARCHAR(50), preciocompra INT, precioventa INT, stock INT);
 CREATE TABLE IF NOT EXISTS sales(id SERIAL PRIMARY KEY, sku INT, cantidad INT, valor INT, valortotal INT, fecha date);
 CREATE TABLE IF NOT EXISTS purchases(id INT, sku INT, cantidad INT, valor INT, valortotal INT, fecha date);
