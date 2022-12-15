@@ -96,6 +96,82 @@
             </div>
         </div>
     </div>
+    <div class="card">
+      <div class="card-body">
+          <h3 class="text-center">Compras</h3>
+          <button class="btn btn-secondary" href="#" data-bs-toggle="modal" data-bs-target="#AddCSVModal">Importar CSV</button>
+          <!-- Modal -->
+  <div class="modal" id="AddCSVModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Importar CSV</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <label for="file">Seleccionar archivo:</label>
+          <div class="row mb-3">
+            <div class="col-lg-8">
+              <input type="file" class="form-control" name="file1" id="file1" />
+            </div>
+            <div class="col-lg-4">
+              <button class="btn btn-primary" id="submitFile1">Leer archivo</button>
+            </div>
+          </div>
+          <table id="csvTable" class="table table-bordered table-striped">
+            <thead>
+            <tr>
+                <th>SKU</th>
+                <th>Cantidad</th>
+                <th>Valor unitario</th>
+                <th>Valor total</th>
+                <th>Fecha</th
+              </tr>
+            </thead>
+            <tbody class="text-center"></tbody>
+        </table>
+        <div class="row mt-5">
+          <div class="col-lg-12 d-flex justify-content-end">
+            <button hidden disabled id="importButton1" class="btn btn-primary">Importar a Compras</button>
+          </div>
+        </div>
+        </div>
+      </div>
+    </div>
+  </div>
+          <div class="row justify-content-center">
+              <div class="col-lg-6">
+                <div class="form">
+                  <div class="row">
+                    <div class="col-lg-5">
+                      <label>Fecha inicio:</label>
+                      <input class="form-control datepicker" onchange="disableButton1()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechainicio">
+                    </div>
+                    <div class="col-lg-5">
+                      <label>Fecha fin:</label>
+                      <input class="form-control datepicker" onchange="disableButton1()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechafin">
+                    </div>
+                    <div class="col-lg-2 d-flex align-items-end">
+                      <button class="btn btn-primary" disabled id="obtainPurchases" onclick="getPurchases()">Obtener</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <table id="purchasesTable" class="mt-5 table table-bordered table-striped">
+                <thead>
+                  <tr>
+                      <th>ID</th>
+                      <th>SKU</th>
+                      <th>Cantidad</th>
+                      <th>Valor</th>
+                      <th>Valor total</th>
+                      <th>Fecha</th>
+                    </tr>
+                  </thead>
+              </table>
+          </div>
+      </div>
+    </div>
   </div>
     
 </body>
@@ -220,6 +296,126 @@
 
       
     })
+    function disableButton1(txt) {
+    const fechaInicioInput = document.getElementById('fechainicio').value
+    const fechaFinInput = document.getElementById('fechafin').value
+    const button = document.getElementById('obtainPurchases')
+    if(fechaInicioInput && fechaFinInput){
+      button.disabled = false;
+    }else{
+      button.disabled = true;
+    }
+  }
+  function getPurchases(){
+    var csvTable = $('#purchasesTable').DataTable()
+    csvTable.clear()
+    swal({
+                title: "Obteniendo datos...",
+                text: "Por favor espere.",
+                icon: "info",
+                });
+    const fechaInicioInput = document.getElementById('fechainicio').value
+    const fechaFinInput = document.getElementById('fechafin').value
+      fetch('/Purchases', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          "startdate": fechaInicioInput,
+          "finaldate": fechaFinInput
+        })
+      })
+      .then((response) => response.json())
+      .then(function(data) {
+        var arrayofArrays = data.map(function(obj){
+          return [...Object.values(obj)]
+        })
+        for(let i = 0;i<arrayofArrays.length;i++){
+          arrayofArrays[i][5] = arrayofArrays[i][5].slice(0,10)
+        }
+        if (data.length) {
+          swal({
+                title: "Datos obtenidos",
+                icon: "success",
+                timer: 5000
+                });
+          
+          csvTable.clear().draw()
+          csvTable.rows.add(arrayofArrays).draw()
+        } else {
+          swal({
+                title: "No se han encontrado registros.",
+                type: "question",
+                timer: 5000
+                });
+        }
+      })
+    }
+
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+    const fileInput1 = document.getElementById('file1')
+    const submitFile1 = document.getElementById('submitFile1')
+    let file1 = null
+
+    fileInput1.addEventListener('change', function () {
+      file1 = this.files[0]
+    })
+
+    let dataCSV1;
+    submitFile1.addEventListener('click', function (callback) {
+      if (!file1 || file1.type !== 'text/csv') {
+        alert('Por favor selecciona un archivo CSV.')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', file1)
+      fetch('/read', {
+        method: 'POST',
+        body: formData
+      })
+      .then((response) => response.json())
+      .then(({ data }) => {
+
+        var arrayofArrays = data.map(function(obj){
+          return [...Object.values(obj)]
+        })
+        if (data.length) {
+          var csvTable = $('#csvTable').DataTable()
+          csvTable.clear()
+          csvTable.rows.add(arrayofArrays).draw()
+          document.getElementById("importButton1").hidden = false;
+          document.getElementById("importButton1").disabled = false;
+          dataCSV1 = data;
+        } else {
+          alert('El archivo está vacio.')
+        }
+      })
+      .catch((e) => alert(e.message))
+    })
+
+  const csvButton1 = document.getElementById('importButton1')
+    csvButton1.addEventListener('click', function () {
+      const formData = new FormData()
+      formData.append('data', dataCSV1)
+      fetch('/importCompras', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(dataCSV1)
+      }).then((response) => response.json())
+      .then(({ data }) => {
+        console.log(data)
+        swal({
+                title: "Importación ejecutada",
+                text: "Obtenga las compras por fecha nuevamente.",
+                icon: "info",
+                });
+      })
+
+      
+    })
   
+    
   </script>
 </html>
