@@ -135,7 +135,6 @@ const UsersManagment = async () => {
             if(message.value){
                 console.log("Llego una solicitud a Administracion de Usuarios.")
                 var id = JSON.parse(message.value).id
-
             }
         }
     })
