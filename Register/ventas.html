@@ -96,12 +96,12 @@
             </div>
         </div>
     </div>
-    <div class="card">
+    <div class="card mt-5">
       <div class="card-body">
           <h3 class="text-center">Compras</h3>
-          <button class="btn btn-secondary" href="#" data-bs-toggle="modal" data-bs-target="#AddCSVModal">Importar CSV</button>
+          <button class="btn btn-secondary" href="#" data-bs-toggle="modal" data-bs-target="#AddCSVComprasModal">Importar CSV</button>
           <!-- Modal -->
-  <div class="modal" id="AddCSVModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal" id="AddCSVComprasModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-xl">
       <div class="modal-content">
         <div class="modal-header">
@@ -118,7 +118,7 @@
               <button class="btn btn-primary" id="submitFile1">Leer archivo</button>
             </div>
           </div>
-          <table id="csvTable" class="table table-bordered table-striped">
+          <table id="csvTable2" class="table table-bordered table-striped">
             <thead>
             <tr>
                 <th>SKU</th>
@@ -145,11 +145,11 @@
                   <div class="row">
                     <div class="col-lg-5">
                       <label>Fecha inicio:</label>
-                      <input class="form-control datepicker" onchange="disableButton1()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechainicio">
+                      <input class="form-control datepicker" onchange="disableButton1()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechainiciopurchases">
                     </div>
                     <div class="col-lg-5">
                       <label>Fecha fin:</label>
-                      <input class="form-control datepicker" onchange="disableButton1()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechafin">
+                      <input class="form-control datepicker" onchange="disableButton1()" data-date-format="yyyy-mm-dd" data-provide="datepicker" id="fechafinpurchases">
                     </div>
                     <div class="col-lg-2 d-flex align-items-end">
                       <button class="btn btn-primary" disabled id="obtainPurchases" onclick="getPurchases()">Obtener</button>
@@ -225,7 +225,7 @@
         } else {
           swal({
                 title: "No se han encontrado registros.",
-                type: "question",
+                icon: "warning",
                 timer: 5000
                 });
         }
@@ -278,6 +278,11 @@
 
   const csvButton = document.getElementById('importButton')
     csvButton.addEventListener('click', function () {
+      swal({
+                title: "Iniciando importación de datos",
+                text: "Por favor espere.",
+                icon: "info",
+                });
       const formData = new FormData()
       formData.append('data', dataCSV)
       fetch('/importVentas', {
@@ -290,15 +295,15 @@
         swal({
                 title: "Importación ejecutada",
                 text: "Obtenga las ventas por fecha nuevamente.",
-                icon: "info",
+                icon: "success",
                 });
       })
 
       
     })
     function disableButton1(txt) {
-    const fechaInicioInput = document.getElementById('fechainicio').value
-    const fechaFinInput = document.getElementById('fechafin').value
+    const fechaInicioInput = document.getElementById('fechainiciopurchases').value
+    const fechaFinInput = document.getElementById('fechafinpurchases').value
     const button = document.getElementById('obtainPurchases')
     if(fechaInicioInput && fechaFinInput){
       button.disabled = false;
@@ -314,9 +319,9 @@
                 text: "Por favor espere.",
                 icon: "info",
                 });
-    const fechaInicioInput = document.getElementById('fechainicio').value
-    const fechaFinInput = document.getElementById('fechafin').value
-      fetch('/Purchases', {
+    const fechaInicioInput = document.getElementById('fechainiciopurchases').value
+    const fechaFinInput = document.getElementById('fechafinpurchases').value
+      fetch('/purchases', {
         method: 'POST',
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
@@ -344,7 +349,7 @@
         } else {
           swal({
                 title: "No se han encontrado registros.",
-                type: "question",
+                icon: "warning",
                 timer: 5000
                 });
         }
@@ -382,7 +387,7 @@
           return [...Object.values(obj)]
         })
         if (data.length) {
-          var csvTable = $('#csvTable').DataTable()
+          var csvTable = $('#csvTable2').DataTable()
           csvTable.clear()
           csvTable.rows.add(arrayofArrays).draw()
           document.getElementById("importButton1").hidden = false;
@@ -397,6 +402,11 @@
 
   const csvButton1 = document.getElementById('importButton1')
     csvButton1.addEventListener('click', function () {
+      swal({
+                title: "Iniciando importación de datos",
+                text: "Por favor espere.",
+                icon: "info",
+                });
       const formData = new FormData()
       formData.append('data', dataCSV1)
       fetch('/importCompras', {
@@ -405,11 +415,12 @@
         body: JSON.stringify(dataCSV1)
       }).then((response) => response.json())
       .then(({ data }) => {
+        console.log("asd")
         console.log(data)
         swal({
                 title: "Importación ejecutada",
                 text: "Obtenga las compras por fecha nuevamente.",
-                icon: "info",
+                icon: "success",
                 });
       })
 

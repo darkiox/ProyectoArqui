@@ -27,6 +27,8 @@ const kafka = new Kafka({
 });
 const producer = kafka.producer();
 producer.connect();
+const producer2 = kafka.producer();
+producer2.connect();
 const consumer = kafka.consumer({ groupId: 'query', partition: 0, fromBeginning: true });
 consumer.connect();
 consumer.subscribe({ topic: 'queries', partition: 0 });
@@ -98,7 +100,7 @@ const QueryHandler = async () => {
                         messages: [{value: JSON.stringify(toKafka)}],
                         partition: 0
                     }).then(
-                        console.log("Se respondió query CSV con '"+ id +"' enviado a topic Query.")
+                        console.log("Se respondió query CSV con '"+ JSON.parse(message.value).id +"' enviado a topic Query.")
                     )
                 }
                 if(JSON.parse(message.value).query == "importCSVVentas"){
@@ -126,66 +128,37 @@ const QueryHandler = async () => {
                         messages: [{value: JSON.stringify(toKafka)}],
                         partition: 0
                     }).then(
-                        console.log("Se respondió query CSV con '"+ id +"' enviado a topic Query.")
+                        console.log("Se respondió query ImportVentasCSV con '"+ JSON.parse(message.value).id +"' enviado a topic Query.")
                     )
                 }
-                if(JSON.parse(message.value).query == "sales"){
-                    var data = await getFromDB('SELECT * FROM sales WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
-                    toKafka = {
-                        id: id,
-                        data: data.rows
-                    }
-                    await producer.send({
-                        topic: 'query',
-                        messages: [{value: JSON.stringify(toKafka)}],
-                        partition: 0
-                    }).then(
-                        console.log("Se respondió query Sales '"+ id +"' enviado a topic Query.")
-                    )
-                }
-                if(JSON.parse(message.value).query == "purchases"){
-                    var data = await getFromDB("SELECT * FROM purchases WHERE fecha BETWEEN "+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
-                    toKafka = {
-                        id: id,
-                        data: data.rows
-                    }
-                    await producer.send({
-                        topic: 'query',
-                        messages: [{value: JSON.stringify(toKafka)}],
-                        partition: 0
-                    }).then(
-                        console.log("Se respondió query purchases '"+ id +"' enviado a topic Query.")
-                    )
-                }
-                if(JSON.parse(message.value).query == "totalSales"){
-                    var data = await getFromDB('SELECT SUM(valortotal) FROM sales WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
-                    toKafka = {
-                        id: id,
-                        data: data.rows
-                    }
-                    await producer.send({
-                        topic: 'query',
-                        messages: [{value: JSON.stringify(toKafka)}],
-                        partition: 0
-                    }).then(
-                        console.log("Se respondió query totalSales '"+ id +"' enviado a topic Query.")
-                    )
-                }
-                if(JSON.parse(message.value).query == "totalPurchases"){
-                    var data = await getFromDB('SELECT SUM(valortotal) FROM purchases WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
-                    toKafka = {
-                        id: id,
-                        data: data.rows
-                    }
-                    await producer.send({
-                        topic: 'query',
-                        messages: [{value: JSON.stringify(toKafka)}],
-                        partition: 0
-                    }).then(
-                        console.log("Se respondió query totalPurchases '"+ id +"' enviado a topic Query.")
-                    )
-                }
+                if(JSON.parse(message.value).query == "importCSVCompras"){
+                    var query = 'INSERT INTO purchases (sku, cantidad, valor, valortotal, fecha) SELECT '
+                    var i = 0;
+                    for (let element in JSON.parse(message.value).import){
+                        console.log(JSON.parse(message.value).import[element])
+                        // sku,cantidad,valor,valortotal,fecha
+                        if(i == 0){
+                            query = query + JSON.parse(message.value).import[element].sku + "," + JSON.parse(message.value).import[element].cantidad + "," + JSON.parse(message.value).import[element].valor + "," + JSON.parse(message.value).import[element].valortotal + ",'" + JSON.parse(message.value).import[element].fecha + "'::date";
+                        }else{
+                            query = query + ' UNION ALL SELECT ' + JSON.parse(message.value).import[element].sku + "," + JSON.parse(message.value).import[element].cantidad + "," + JSON.parse(message.value).import[element].valor + "," + JSON.parse(message.value).import[element].valortotal + ",'" + JSON.parse(message.value).import[element].fecha + "'::date";
 
+                        }
+                        i++;
+                    }
+                    console.log(query)
+                    var data = await getFromDB(query);
+                    var toKafka = {
+                        id: JSON.parse(message.value).id,
+                        data: 'Query ejecutada'
+                    }
+                    await producer2.send({
+                        topic: 'CSVComprasresponse',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query ImportComprasCSV con '"+ JSON.parse(message.value).id +"' enviado a topic Query.")
+                    )
+                }
             }
         }
     })

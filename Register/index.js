@@ -30,11 +30,15 @@ producer.connect();
 const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true });
 const consumerStock = kafka.consumer({groupId: 'consumerStock', fromBeginning: true });
 const consumerSales = kafka.consumer({groupId: 'consumerSales', fromBeginning: true });
+const consumerPurchases = kafka.consumer({groupId: 'consumerPurchases', fromBeginning: true });
 const consumerCSV = kafka.consumer({groupId: 'consumerCSV', fromBeginning: true });
 const consumerCSVVentas = kafka.consumer({groupId: 'consumerCSVVentas', fromBeginning: true });
+const consumerCSVCompras = kafka.consumer({groupId: 'consumerCSVCompras', fromBeginning: true });
+consumerCSVCompras.subscribe({topic: 'CSVComprasresponse', partition: 0})
 consumerCSVVentas.subscribe({topic: 'CSVVentasresponse', partition: 0})
 consumerCSV.subscribe({topic: 'CSVresponse', partition: 0})
 consumerSales.subscribe({topic: 'saleresponse', partition: 0})
+consumerPurchases.subscribe({topic: 'purchaseresponse', partition: 0})
 consumerStock.subscribe({topic: 'query', partition: 0})
 consumer.subscribe({ topic: 'authresponse', partition: 0 });
 
@@ -95,8 +99,6 @@ app.post('/read', upload.single('file'), async (req, res) => {
             }
         },
     })
-    
-    res.sendFile(path.join(__dirname, 'ventas.html'))
   })
 
   app.post('/importVentas', async (req, res) => {
@@ -117,8 +119,33 @@ app.post('/read', upload.single('file'), async (req, res) => {
         )
     await consumerCSVVentas.run({
         eachMessage: async ({ topic, partition, message }) => {
+
             if (idquery == JSON.parse(message.value).id){
                 console.log("Llego respuesta a CSVVentasresponse")
+                console.log(JSON.parse(message.value))
+                var data =JSON.parse(message.value).data
+                console.log("data: ", data)
+                res.json({data})
+                consumerCSV.stop();
+            }
+        },
+    })
+  })
+  app.post('/importCompras', async (req, res) => {
+    console.log("Importando CSV")
+    console.log(req.body)
+    var idquery =  makeid(10)
+    var toKafka = {
+        id: idquery,
+        query: "importCSVCompras",
+        import: req.body
+    }
+    consumerCSVCompras.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            console.log("llego mensaje compras: ", JSON.parse(message.value))
+            console.log(idquery , " == ", JSON.parse(message.value).id)
+            if (idquery == JSON.parse(message.value).id){
+                console.log("Llego respuesta a CSVComprasresponse")
                 console.log(JSON.parse(message.value))
                 var data =JSON.parse(message.value).data
                 res.json({data})
@@ -126,10 +153,15 @@ app.post('/read', upload.single('file'), async (req, res) => {
             }
         },
     })
-    
-    res.sendFile(path.join(__dirname, 'ventas.html'))
-  })
+    await producer.send({
+        topic: 'queries',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        // console.log("Autentificando usuario con id: ", formData.id)
+        )
 
+  })
   app.post('/sales', async (req, res) => {
     var fechas = req.body
     var id = makeid(10)
@@ -147,6 +179,7 @@ app.post('/read', upload.single('file'), async (req, res) => {
             }
         },
     })
+    
     await producer.send({
         topic: 'salequery',
         messages: [{value: JSON.stringify(fechas)}],
@@ -156,6 +189,31 @@ app.post('/read', upload.single('file'), async (req, res) => {
         )
   })
 
+  app.post('/purchases', async (req, res) => {
+    var fechas = req.body
+    var id = makeid(10)
+    fechas.id = id;
+    console.log("se enviará id: ", fechas.id)
+    fechas.query = "purchases"
+    await consumerPurchases.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            console.log("Llego mensaje a purchaseresponse")
+            if (fechas.id == JSON.parse(message.value).id){
+                var data = JSON.parse(message.value).data
+                //console.log("data: ", data)
+                res.json(data)
+                consumerPurchases.stop();
+            }
+        },
+    })
+    await producer.send({
+        topic: 'salequery',
+        messages: [{value: JSON.stringify(fechas)}],
+        partition: 0
+    }).then(
+        console.log("Enviando id: ", fechas.id)
+        )
+})
 
 
 app.post("/login", async (req, res) =>{

@@ -27,6 +27,8 @@ const kafka = new Kafka({
 });
 const producer = kafka.producer();
 producer.connect();
+const producer2 = kafka.producer();
+producer2.connect();
 const consumer = kafka.consumer({ groupId: 'sales', partition: 0, fromBeginning: true });
 consumer.connect();
 consumer.subscribe({ topic: 'salequery', partition: 0 });
@@ -37,7 +39,7 @@ const QueryHandler = async () => {
                 console.log("Llego un mensaje a Salequery")
                 var id = JSON.parse(message.value).id
                 if(JSON.parse(message.value).query == "sales"){
-                    var query = `SELECT * FROM purchases
+                    var query = `SELECT * FROM sales
                                  WHERE fecha BETWEEN '`+JSON.parse(message.value).startdate+`'
                                  AND '`+JSON.parse(message.value).finaldate+`';`  
                     var data = await getFromDB(query)
@@ -55,14 +57,16 @@ const QueryHandler = async () => {
                     )
                 }
                 if(JSON.parse(message.value).query == "purchases"){
-                    
-                    var data = await getFromDB('SELECT * FROM purchases WHERE fecha <= DATEADD(DAY,'+JSON.parse(message.value).purchases.days+','+JSON.parse(message.value).purchases.date+') and DATEADD(DAY,-'+JSON.parse(message.value).purchases.days+','+JSON.parse(message.value).sales.date+' <= fecha;')
+                    var query = `SELECT * FROM purchases
+                    WHERE fecha BETWEEN '`+JSON.parse(message.value).startdate+`'
+                    AND '`+JSON.parse(message.value).finaldate+`';` 
+                    var data = await getFromDB(query)
                     toKafka = {
-                        id: id,
+                        id: JSON.parse(message.value).id,
                         data: data.rows
                     }
-                    await producer.send({
-                        topic: 'query',
+                    await producer2.send({
+                        topic: 'purchaseresponse',
                         messages: [{value: JSON.stringify(toKafka)}],
                         partition: 0
                     }).then(
