@@ -129,6 +129,63 @@ const QueryHandler = async () => {
                         console.log("Se respondió query CSV con '"+ id +"' enviado a topic Query.")
                     )
                 }
+                if(JSON.parse(message.value).query == "sales"){
+                    var data = await getFromDB('SELECT * FROM sales WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query Sales '"+ id +"' enviado a topic Query.")
+                    )
+                }
+                if(JSON.parse(message.value).query == "purchases"){
+                    var data = await getFromDB("SELECT * FROM purchases WHERE fecha BETWEEN "+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query purchases '"+ id +"' enviado a topic Query.")
+                    )
+                }
+                if(JSON.parse(message.value).query == "totalSales"){
+                    var data = await getFromDB('SELECT SUM(valortotal) FROM sales WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query totalSales '"+ id +"' enviado a topic Query.")
+                    )
+                }
+                if(JSON.parse(message.value).query == "totalPurchases"){
+                    var data = await getFromDB('SELECT SUM(valortotal) FROM purchases WHERE fecha BETWEEN '+JSON.parse(message.value).sales.finaldate+' AND '+JSON.parse(message.value).sales.startdate+';')
+                    toKafka = {
+                        id: id,
+                        data: data.rows
+                    }
+                    await producer.send({
+                        topic: 'query',
+                        messages: [{value: JSON.stringify(toKafka)}],
+                        partition: 0
+                    }).then(
+                        console.log("Se respondió query totalPurchases '"+ id +"' enviado a topic Query.")
+                    )
+                }
+
             }
         }
     })
