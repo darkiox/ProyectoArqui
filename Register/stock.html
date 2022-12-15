@@ -10,6 +10,8 @@
   <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
   <link href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
   <script src="https://kit.fontawesome.com/b3e10ef58e.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
   <style>
     body { padding-top: 50px; background: #2d2d2d}
   </style>
@@ -90,6 +92,11 @@
                           </thead>
                           <tbody class="text-center"></tbody>
                       </table>
+                      <div class="row mt-5">
+                        <div class="col-lg-12 d-flex justify-content-end">
+                          <button hidden disabled id="importButton" class="btn btn-primary">Importar a Stock</button>
+                        </div>
+                      </div>
                       </div>
                     </div>
                   </div>
@@ -137,7 +144,8 @@
       file = this.files[0]
     })
 
-    submitFile.addEventListener('click', function () {
+    let dataCSV;
+    submitFile.addEventListener('click', function (callback) {
       if (!file || file.type !== 'text/csv') {
         alert('Por favor selecciona un archivo CSV.')
         return
@@ -145,24 +153,52 @@
 
       const formData = new FormData()
       formData.append('file', file)
-
       fetch('/read', {
         method: 'POST',
         body: formData
       })
       .then((response) => response.json())
       .then(({ data }) => {
+
         var arrayofArrays = data.map(function(obj){
           return [...Object.values(obj)]
         })
         if (data.length) {
           var csvTable = $('#csvTable').DataTable()
+          csvTable.clear()
           csvTable.rows.add(arrayofArrays).draw()
+          document.getElementById("importButton").hidden = false;
+          document.getElementById("importButton").disabled = false;
+          dataCSV = data;
         } else {
           alert('El archivo está vacio.')
         }
       })
       .catch((e) => alert(e.message))
+    })
+
+  const csvButton = document.getElementById('importButton')
+    csvButton.addEventListener('click', function () {
+
+      console.log(dataCSV)
+      const formData = new FormData()
+      formData.append('data', dataCSV)
+      console.log(formData)
+      fetch('/import', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(dataCSV)
+      }).then((response) => response.json())
+      .then(({ data }) => {
+        console.log(data)
+        swal({
+                title: "Importación ejecutada",
+                text: "Actualice la página para ver resultados.",
+                icon: "info",
+                });
+      })
+
+      
     })
 
     $(document).ready(function () {
@@ -197,9 +233,9 @@
         <form class="form" action="/editproduct" method="POST">
           <input class="d-none" type="number" value="`+row.sku+`" id="sku" name="sku">
           <label for="descripcion">Nombre producto:</label>
-          <input class="form-control mb-3" type="text" placeholder="Nombre" value=`+row.nombre+` id="nombre" name="nombre">
+          <input class="form-control mb-3" type="text" placeholder="Nombre" value="`+row.nombre+`" id="nombre" name="nombre">
           <label for="descripcion">Categoria producto:</label>
-          <input class="form-control mb-3" type="text" placeholder="Categoria" value=`+row.categoria+` id="categoria" name="categoria">
+          <input class="form-control mb-3" type="text" placeholder="Categoria" value="`+row.categoria+`" id="categoria" name="categoria">
           <label for="pcompra">Precio de Compra:</label>
           <input class="form-control mb-3" type="number" placeholder="Precio Compra" value=`+row.preciocompra+` id="preciocompra" name="preciocompra">
           <label for="pventa">Precio de Venta:</label>

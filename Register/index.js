@@ -11,6 +11,7 @@ const { Kafka } = require('kafkajs')
 const path = require('path');
 const bodyParser = require('body-parser');
 const { DataRowMessage } = require("pg-protocol/dist/messages");
+const { resolveSoa } = require("dns");
 
 const port = process.env.PORT;
 
@@ -29,6 +30,10 @@ producer.connect();
 const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true });
 const consumerStock = kafka.consumer({groupId: 'consumerStock', fromBeginning: true });
 const consumerSales = kafka.consumer({groupId: 'consumerSales', fromBeginning: true });
+const consumerCSV = kafka.consumer({groupId: 'consumerCSV', fromBeginning: true });
+const consumerCSVVentas = kafka.consumer({groupId: 'consumerCSVVentas', fromBeginning: true });
+consumerCSVVentas.subscribe({topic: 'CSVVentasresponse', partition: 0})
+consumerCSV.subscribe({topic: 'CSVresponse', partition: 0})
 consumerSales.subscribe({topic: 'saleresponse', partition: 0})
 consumerStock.subscribe({topic: 'query', partition: 0})
 consumer.subscribe({ topic: 'authresponse', partition: 0 });
@@ -63,6 +68,68 @@ app.post('/read', upload.single('file'), async (req, res) => {
     parseData(enviarJSON);
   })
 
+  app.post('/import', async (req, res) => {
+    console.log("Importando CSV")
+    console.log(req.body)
+    var idquery =  makeid(10)
+    var toKafka = {
+        id: idquery,
+        query: "importCSV",
+        import: req.body
+    }
+    await producer.send({
+        topic: 'queries',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        // console.log("Autentificando usuario con id: ", formData.id)
+        )
+    await consumerCSV.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            if (idquery == JSON.parse(message.value).id){
+                console.log("Llego respuesta a CSVresponse")
+                console.log(JSON.parse(message.value))
+                var data =JSON.parse(message.value).data
+                res.json({data})
+                consumerCSV.stop();
+            }
+        },
+    })
+    
+    res.sendFile(path.join(__dirname, 'ventas.html'))
+  })
+
+  app.post('/importVentas', async (req, res) => {
+    console.log("Importando CSV")
+    console.log(req.body)
+    var idquery =  makeid(10)
+    var toKafka = {
+        id: idquery,
+        query: "importCSVVentas",
+        import: req.body
+    }
+    await producer.send({
+        topic: 'queries',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        // console.log("Autentificando usuario con id: ", formData.id)
+        )
+    await consumerCSVVentas.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            if (idquery == JSON.parse(message.value).id){
+                console.log("Llego respuesta a CSVVentasresponse")
+                console.log(JSON.parse(message.value))
+                var data =JSON.parse(message.value).data
+                res.json({data})
+                consumerCSV.stop();
+            }
+        },
+    })
+    
+    res.sendFile(path.join(__dirname, 'ventas.html'))
+  })
+
   app.post('/sales', async (req, res) => {
     var fechas = req.body
     var id = makeid(10)
@@ -88,6 +155,8 @@ app.post('/read', upload.single('file'), async (req, res) => {
         // console.log("Autentificando usuario con id: ", formData.id)
         )
   })
+
+
 
 app.post("/login", async (req, res) =>{
     const formData = req.body;

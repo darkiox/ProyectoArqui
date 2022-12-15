@@ -23,6 +23,46 @@
     <div class="card">
         <div class="card-body">
             <h3 class="text-center">Ventas</h3>
+            <button class="btn btn-secondary" href="#" data-bs-toggle="modal" data-bs-target="#AddCSVModal">Importar CSV</button>
+            <!-- Modal -->
+    <div class="modal" id="AddCSVModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="exampleModalLabel">Importar CSV</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <label for="file">Seleccionar archivo:</label>
+            <div class="row mb-3">
+              <div class="col-lg-8">
+                <input type="file" class="form-control" name="file" id="file" />
+              </div>
+              <div class="col-lg-4">
+                <button class="btn btn-primary" id="submitFile">Leer archivo</button>
+              </div>
+            </div>
+            <table id="csvTable" class="table table-bordered table-striped">
+              <thead>
+              <tr>
+                  <th>SKU</th>
+                  <th>Cantidad</th>
+                  <th>Valor unitario</th>
+                  <th>Valor total</th>
+                  <th>Fecha</th
+                </tr>
+              </thead>
+              <tbody class="text-center"></tbody>
+          </table>
+          <div class="row mt-5">
+            <div class="col-lg-12 d-flex justify-content-end">
+              <button hidden disabled id="importButton" class="btn btn-primary">Importar a Ventas</button>
+            </div>
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
             <div class="row justify-content-center">
                 <div class="col-lg-6">
                   <div class="form">
@@ -115,6 +155,71 @@
         }
       })
     }
+
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+    const fileInput = document.getElementById('file')
+    const submitFile = document.getElementById('submitFile')
+    let file = null
+
+    fileInput.addEventListener('change', function () {
+      file = this.files[0]
+    })
+
+    let dataCSV;
+    submitFile.addEventListener('click', function (callback) {
+      if (!file || file.type !== 'text/csv') {
+        alert('Por favor selecciona un archivo CSV.')
+        return
+      }
+
+      const formData = new FormData()
+      formData.append('file', file)
+      fetch('/read', {
+        method: 'POST',
+        body: formData
+      })
+      .then((response) => response.json())
+      .then(({ data }) => {
+
+        var arrayofArrays = data.map(function(obj){
+          return [...Object.values(obj)]
+        })
+        if (data.length) {
+          var csvTable = $('#csvTable').DataTable()
+          csvTable.clear()
+          csvTable.rows.add(arrayofArrays).draw()
+          document.getElementById("importButton").hidden = false;
+          document.getElementById("importButton").disabled = false;
+          dataCSV = data;
+        } else {
+          alert('El archivo está vacio.')
+        }
+      })
+      .catch((e) => alert(e.message))
+    })
+
+  const csvButton = document.getElementById('importButton')
+    csvButton.addEventListener('click', function () {
+      const formData = new FormData()
+      formData.append('data', dataCSV)
+      fetch('/importVentas', {
+        method: 'POST',
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(dataCSV)
+      }).then((response) => response.json())
+      .then(({ data }) => {
+        console.log(data)
+        swal({
+                title: "Importación ejecutada",
+                text: "Obtenga las ventas por fecha nuevamente.",
+                icon: "info",
+                });
+      })
+
+      
+    })
   
   </script>
 </html>
