@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login simple</title>
+  <script src="https://code.jquery.com/jquery-3.5.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js" integrity="sha384-IQsoLXl5PILFhosVNubq5LC7Qb9DXgDA9i+tQ8Zj3iwWAwPtgFTxbJ8NT4GN1R8p" crossorigin="anonymous"></script>
+  <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.20/js/jquery.dataTables.js"></script>
+  <link href="https://cdn.datatables.net/1.13.1/css/dataTables.bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+  <script src="https://kit.fontawesome.com/b3e10ef58e.js" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+
+  <style>
+    body { padding-top: 50px; background: #2d2d2d}
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="card">
+        <div class="card-body">
+            <h3 class="text-center">Administración de usuarios</h3>
+            <div class="row align-items-end mb-3">
+              <div class="col-lg-4">
+                <button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#AddModal">Agregar usuario</button>
+                        <!-- Modal -->
+                <div class="modal" id="AddModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Agregar un usuario</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                      </div>
+                      <div class="modal-body">
+                        <form class="form" action="/adduser" method="POST">
+                          <div class="row">
+                            <div class="col-lg-6">
+                              <label for="nombre">Nombre usuario:</label>
+                              <input class="form-control mb-3" type="text" placeholder="Nombre" id="nombre" name="nombre">
+                            </div>
+                            <div class="col-lg-6">
+                              <label for="apelido">Apellido usuario:</label>
+                              <input class="form-control mb-3" type="text" placeholder="Apellido" id="apellido" name="apellido">
+                            </div>
+                          </div>
+                          <label for="mail">Correo electrónico:</label>
+                          <input class="form-control mb-3" type="text" placeholder="E-mail" id="mail" name="mail">
+                          <label for="password">Contraseña:</label>
+                          <input class="form-control mb-3" type="password" placeholder="Contraseña" id="password" name="password">
+                          <label for="tipo">Tipo:</label>
+                          <select class="form-control" id="tipo" name="tipo">
+                            <option value="0">Administrador</option>
+                            <option value="1">Gestor de Finanzas</option>
+                            <option value="2">Gestor de Stock</option>
+                          </select>
+                          <div class="row justify-content-center mt-5">
+                            <div class="col-lg-6">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            </div>
+                            <div class="col-lg-6 d-flex justify-content-end">
+                              <button type="submit" class="btn btn-primary text-center" data-bs-dismiss="modal">
+                                  Agregar usuario
+                              </button>
+                            </div>
+                          </div>
+                      </form>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table id="TestTable" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Apellido</th>
+                    <th>E-mail</th>
+                    <th hidden>Password</th>
+                    <th>Tipo</th>
+                    <th>Acciones</th>
+                  </tr>
+                </thead>
+                <tbody class="text-center"></tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+  </div>
+    
+</body>
+</html>
+
+  <div class="container py-4">
+
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" 
+    integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+  <script type="text/javascript" src="https://unpkg.com/tabulator-tables/dist/js/tabulator.min.js"></script>
+  <script>
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+
+    $(document).ready(function () {
+       $('#TestTable').DataTable({
+            "paging": true,
+            "pageLength": 10,
+            "processing": true,
+            "serverMethod": 'get',
+            "ajax": {
+                "url": "/users"
+            },
+                "columns":
+                    [
+                        { data: "id" },
+                        { data: "nombre" },
+                        { data: "apellido"},
+                        { data: "mail"},
+                        { data: "password", visible: false},
+                        { data: "tipo"},
+                        { data: null, render: function ( data, type, row ) {
+        return `<div class="row"><div class="col"><form class="form" action="/deluser" method="POST"> <input class="d-none" type="number" value="`+row.id+`" name="id" id="id"> <button type="submit" class="btn btn-danger" data-toggle="tooltip" data-placement="top" title="Eliminar"><i class="fa-solid fa-trash-can"></i></button></form></div>
+        <div class="col"><button class="btn btn-primary" href="#" data-bs-toggle="modal" data-bs-target="#editModal`+row.id+`" data-toggle="tooltip" data-placement="top" title="Editar"><i class="fa-solid fa-wrench"></i></button></div>
+                        <!-- Modal -->
+<div class="modal" id="editModal`+row.id+`" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Editar un producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form class="form" action="/edituser" method="POST">
+          <input class="d-none" type="number" value="`+row.id+`" id="id" name="id">
+          <div class="row">
+            <div class="col-lg-6">
+              <label for="nombre">Nombre usuario:</label>
+              <input class="form-control mb-3" type="text"  value="`+row.nombre+`" placeholder="Nombre" id="nombre" name="nombre">
+            </div>
+            <div class="col-lg-6">
+              <label for="apelido">Apellido usuario:</label>
+              <input class="form-control mb-3" type="text"  value="`+row.apellido+`" placeholder="Apellido" id="apellido" name="apellido">
+            </div>
+          </div>
+          <label for="mail">Correo electrónico:</label>
+          <input class="form-control mb-3" type="text"  value="`+row.mail+`" placeholder="E-mail" id="mail" name="mail">
+          <label for="password">Contraseña:</label>
+          <input class="form-control mb-3" type="password"  value="`+row.password+`" placeholder="Contraseña" id="password" name="password">
+          <label for="tipo">Tipo:</label>
+          <select class="form-control" id="tipo" name="tipo"  value="`+row.tipo+`">
+            <option value="0">Administrador</option>
+            <option value="1">Gestor de Finanzas</option>
+            <option value="2">Gestor de Stock</option>
+          </select>
+          <div class="row justify-content-center mt-3">
+            <div class="col-lg-6">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            </div>
+            <div class="col-lg-6 d-flex justify-content-end">
+              <button type="submit" class="btn btn-primary text-center" data-bs-dismiss="modal">
+                  Editar usuario
+              </button>
+            </div>
+          </div>
+      </form>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+        
+        `;
+                }}
+                      ]
+            
+        });
+
+    });
+</script>
+</body>
+</html>

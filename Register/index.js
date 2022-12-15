@@ -31,6 +31,7 @@ const consumer = kafka.consumer({ groupId: 'authresponse', fromBeginning: true }
 const consumerStock = kafka.consumer({groupId: 'consumerStock', fromBeginning: true });
 const consumerSales = kafka.consumer({groupId: 'consumerSales', fromBeginning: true });
 const consumerPurchases = kafka.consumer({groupId: 'consumerPurchases', fromBeginning: true });
+const consumerUsers = kafka.consumer({groupId: 'consumerUsers', fromBeginning: true });
 const consumerCSV = kafka.consumer({groupId: 'consumerCSV', fromBeginning: true });
 const consumerCSVVentas = kafka.consumer({groupId: 'consumerCSVVentas', fromBeginning: true });
 const consumerCSVCompras = kafka.consumer({groupId: 'consumerCSVCompras', fromBeginning: true });
@@ -41,7 +42,7 @@ consumerSales.subscribe({topic: 'saleresponse', partition: 0})
 consumerPurchases.subscribe({topic: 'purchaseresponse', partition: 0})
 consumerStock.subscribe({topic: 'query', partition: 0})
 consumer.subscribe({ topic: 'authresponse', partition: 0 });
-
+consumerUsers.subscribe({ topic: 'authresponse', partition: 0 });
 app.get("/", async (req,res) =>{
     res.sendFile(path.join(__dirname, '/accounts.html'))
 })
@@ -220,6 +221,7 @@ app.post("/login", async (req, res) =>{
     const formData = req.body;
     id = makeid(10)
     formData.id = id;
+    formData.query = "auth"
     await producer.connect();
     var result;
 
@@ -251,10 +253,20 @@ app.post("/login", async (req, res) =>{
                 }else{
                     switch(JSON.parse(message.value).tipo){
                         case 0:
-                            res.sendFile(path.join(__dirname, 'stock.html'))
+                            console.log("Enviando a administración")
+                            consumer.stop();
+                            res.sendFile(path.join(__dirname, 'admin.html'))
                             break;
                         case 1:
+                            console.log("Enviando a ventas")
+                            consumer.stop();
                             res.sendFile(path.join(__dirname, 'ventas.html'))
+                            break;
+                        case 2:
+                            console.log("Enviando a stock")
+                            consumer.stop();
+                            res.sendFile(path.join(__dirname, 'stock.html'))
+                            break;
                     }
                 }
                 consumer.stop();
@@ -299,6 +311,39 @@ app.get('/stock', async function(request, response, next){
 
     
 })
+
+app.get('/users', async function(request, response, next){
+    var id = makeid(10)
+    var toKafka = {
+        id: id,
+        query: "getUsers"
+    }
+    await consumerUsers.run({
+        eachMessage: async ({ topic, partition, message }) => {
+            console.log("Se recibió respuesta de userquery id '" +id + "' : ", JSON.parse(message.value))
+            if (JSON.parse(message.value).id == toKafka.id){
+                var data = JSON.parse(message.value).data
+                var output = {
+                    'aaData': data
+                }
+                consumerUsers.stop();
+                console.log(output)
+                response.json(output)
+            }
+        },
+    })
+    console.log("Se intenta enviar a Auth: ", toKafka)
+    await producerStock.send({
+        topic: 'auth',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Query enviada para pedir Usuarios.")
+    )
+
+    
+})
+
 app.post("/delproduct", async(req,res) =>{
     const formData = req.body;
     var toKafka = {
@@ -316,6 +361,24 @@ app.post("/delproduct", async(req,res) =>{
     )
     res.sendFile(path.join(__dirname, 'stock.html'))   
 })
+app.post("/deluser", async(req,res) =>{
+    const formData = req.body;
+    var toKafka = {
+        id: makeid(10),
+        query: "delUser",
+        delUser: req.body
+    }
+    console.log("Se intentará eliminar usuario con ID: ", req.body.id)
+    await producernewProduct.send({
+        topic: 'auth',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Mensaje enviado a Auth.")
+    )
+    res.sendFile(path.join(__dirname, 'admin.html'))   
+})
+
 app.post("/addproduct", async (req, res) =>{
     const formData = req.body;
     id = makeid(10)
@@ -334,6 +397,24 @@ app.post("/addproduct", async (req, res) =>{
     )
     res.sendFile(path.join(__dirname, 'stock.html'))
 })
+app.post("/adduser", async (req, res) =>{
+    const formData = req.body;
+    id = makeid(10)
+    var toKafka = {
+        query: "addUser",
+        id: id,
+        newUser: formData
+    }
+    console.log("Se quiere agregar usuario: ", toKafka)
+    await producernewProduct.send({
+        topic: 'auth',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Mensaje enviado a Auth.")
+    )
+    res.sendFile(path.join(__dirname, 'admin.html'))
+})
 app.post('/editproduct',async (req, res) => {
     const formData = req.body;
     id = makeid(10);
@@ -351,6 +432,25 @@ app.post('/editproduct',async (req, res) => {
     )
     res.sendFile(path.join(__dirname, 'stock.html'))
 });
+
+app.post('/edituser',async (req, res) => {
+    const formData = req.body;
+    id = makeid(10);
+    var toKafka = {
+        query: "editUser",
+        id: id,
+        editUser: formData
+    }
+    await producernewProduct.send({
+        topic: 'auth',
+        messages: [{value: JSON.stringify(toKafka)}],
+        partition: 0
+    }).then(
+        console.log("Mensaje enviado a Auth.")
+    )
+    res.sendFile(path.join(__dirname, 'admin.html'))
+});
+
 app.listen(port, () => {
     console.log(`Escuchando en puerto ${port}`);
 });

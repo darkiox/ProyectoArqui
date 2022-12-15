@@ -34,6 +34,7 @@ const Authenticator = async () => {
     consumer.run({
         eachMessage: async ({message}) => {
             if(message.value){
+                if(JSON.parse(message.value).query == "auth"){
                 console.log("Usuario con id: ", JSON.parse(message.value).id)
                 var Auth = await AuthLogin(JSON.parse(message.value).mail,JSON.parse(message.value).password)
                 console.log("Tipo de usuario ingresando: ", Auth[1])
@@ -56,6 +57,52 @@ const Authenticator = async () => {
                         console.log("Inicio de sesion incorrecto.")
                         )
                 }
+            }
+            if(JSON.parse(message.value).query == "getUsers"){
+                var data = await getFromDB('SELECT * FROM users;')
+                toKafka = {
+                    id: JSON.parse(message.value).id,
+                    data: data.rows
+                }
+                await producer.send({
+                    topic: 'authresponse',
+                    messages: [{value: JSON.stringify(toKafka)}],
+                    partition: 0
+                }).then(
+                    console.log("Se respondió query Users '"+ JSON.parse(message.value).id +"' enviado a topic Authresponse.")
+                )
+            }
+                if(JSON.parse(message.value).query == "addUser"){
+                    var userAdd = JSON.parse(message.value).newUser
+                    console.log("Usuario a añadir:" , userAdd)
+                    var detailsuserAdd = "'"+ userAdd.nombre + "', '" + userAdd.apellido + "','" + userAdd.mail + "','" + userAdd.password + "'," + userAdd.tipo
+                    var query = await getFromDB('INSERT INTO users(nombre,apellido,mail,password,tipo) VALUES ('+detailsuserAdd+');')
+                    await producer.send({
+                        topic: 'authresponse',
+                        messages: [{value: JSON.stringify({id: JSON.parse(message.value).id, error: "Usuario creado."})}],
+                        partition: 0
+                    }).then(
+                        console.log("Creación de usuario ejecutada.")
+                        )
+                }
+                if(JSON.parse(message.value).query == "delUser"){
+                    var IDUsuarioDel = JSON.parse(message.value).delUser.id;
+                    console.log("Usuario de id: ", IDUsuarioDel, " eliminado correctamente.")
+                    var query = await getFromDB('DELETE FROM users WHERE id = '+IDUsuarioDel+';')
+                }
+                if(JSON.parse(message.value).query == "editUser"){
+                    console.log("Editando usuario de id: ", JSON.parse(message.value).editUser.id)
+                    var updateUser = `
+                    UPDATE users
+                    SET nombre = '`+JSON.parse(message.value).editUser.nombre+`',
+                    apellido = '`+JSON.parse(message.value).editUser.apellido+`',
+                    mail = '`+JSON.parse(message.value).editUser.mail+`',
+                    password = '`+JSON.parse(message.value).editUser.password+`',
+                    tipo = '`+JSON.parse(message.value).editUser.tipo+`'
+                    WHERE id = `+JSON.parse(message.value).editUser.id+`
+                    `
+                    var query = await getFromDB(updateUser)
+                }    
 
             }
         }
@@ -88,35 +135,22 @@ const UsersManagment = async () => {
             if(message.value){
                 console.log("Llego una solicitud a Administracion de Usuarios.")
                 var id = JSON.parse(message.value).id
-                if(JSON.parse(message.value).query == "addUser"){
-                    var userAdd = JSON.parse(message.value).newUser
-                    console.log("Producto a añadir:" , userAdd)
-                    var detailsuserAdd = "'"+ userAdd.nombre + "', '" + userAdd.apellido + "'," + userAdd.mail + ',' + userAdd.password + ',' + userAdd.tipo
-                    var query = await getFromDB('INSERT INTO users(nombre,apellido,mail,password,tipo) VALUES ('+detailsuserAdd+');')
-                }
-                if(JSON.parse(message.value).query == "delUser"){
-                    var IDUsuarioDel = JSON.parse(message.value).delUser.id;
-                    console.log("Usuario de id: ", mailUsuarioDel, " eliminado correctamente.")
-                    var query = await getFromDB('DELETE FROM users WHERE id = '+IDUsuarioDel+';')
-                }
-                if(JSON.parse(message.value).query == "editUser"){
-                    console.log("Editando usuario de id: ", JSON.parse(message.value).editUser.id)
-                    var updateUser = `
-                    UPDATE users
-                    SET nombre = '`+JSON.parse(message.value).editUser.nombre+`',
-                    apellido = '`+JSON.parse(message.value).editUser.apellido+`',
-                    mail = '`+JSON.parse(message.value).editUser.mail+`',
-                    password = '`+JSON.parse(message.value).editUser.password+`',
-                    tipo = '`+JSON.parse(message.value).editUser.tipo+`'
-                    WHERE id = `+JSON.parse(message.value).editUser.id+`
-                    `
-                    var query = await getFromDB(updateUser)
-                }    
+
             }
         }
     })
 }
+
+const getFromDB = async (query) => {
+    return new Promise(function (resolve, reject) {
+        client.query(query, function(err,res) {
+            return resolve(res)
+        })
+    })
+}
+
 app.listen(port, () => {
     console.log(`Escuchando en puerto: ${port}`);
     Authenticator()
 });
+
