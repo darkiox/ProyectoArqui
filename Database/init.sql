@@ -2,9 +2,9 @@ CREATE TABLE IF NOT EXISTS users(id SERIAL PRIMARY KEY,nombre VARCHAR(50), apell
 CREATE TABLE IF NOT EXISTS products(sku SERIAL PRIMARY KEY, nombre VARCHAR(50), categoria VARCHAR(50), preciocompra INT, precioventa INT, stock INT);
 CREATE TABLE IF NOT EXISTS sales(id SERIAL PRIMARY KEY, sku INT, cantidad INT, valor INT, valortotal INT, fecha date);
 CREATE TABLE IF NOT EXISTS purchases(id INT, sku INT, cantidad INT, valor INT, valortotal INT, fecha date);
-INSERT INTO users VALUES ('admin', 'admin', 'admin@admin.com', 'admin', 0);
-INSERT INTO users VALUES ('stock', 'stock', 'stock', 'stock', 0);
-INSERT INTO users VALUES ('seller', 'seller', 'seller', 'seller', 1);
+INSERT INTO users(nombre,apellido,mail,password,tipo) VALUES ('admin', 'admin', 'admin@admin.com', 'admin', 0);
+INSERT INTO users(nombre,apellido,mail,password,tipo) VALUES ('stock', 'stock', 'stock', 'stock', 0);
+INSERT INTO users(nombre,apellido,mail,password,tipo) VALUES ('seller', 'seller', 'seller', 'seller', 1);
 INSERT INTO products(nombre,categoria,preciocompra,precioventa,stock) VALUES ('Chocolate','Comida', 1000, 1500, 30);
 INSERT INTO products(nombre,categoria,preciocompra,precioventa,stock) VALUES ('Doritos','Comida', 1000, 2000, 20);
 INSERT INTO products(nombre,categoria,preciocompra,precioventa,stock) VALUES ('Papa Frita','Comida', 800, 1200, 30);
