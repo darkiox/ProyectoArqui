@@ -37,10 +37,13 @@ const QueryHandler = async () => {
                 console.log("Llego un mensaje a Salequery")
                 var id = JSON.parse(message.value).id
                 if(JSON.parse(message.value).query == "sales"){
-                    var query = `SELECT * FROM purchases
-                                 WHERE fecha BETWEEN '`+JSON.parse(message.value).startdate+`'
-                                 AND '`+JSON.parse(message.value).finaldate+`';`  
+                    console.log("------------- QUERY ------------")
+                    var query = `SELECT * FROM sales
+                    WHERE fecha BETWEEN '`+JSON.parse(message.value).startdate+`'::date
+                    AND '`+JSON.parse(message.value).finaldate+`'::date;`  
                     var data = await getFromDB(query)
+                    console.log(query)
+                    console.log("------------- QUERY ------------")
                     toKafka = {
                         id: JSON.parse(message.value).id,
                         data: data.rows
