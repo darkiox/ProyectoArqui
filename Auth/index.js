@@ -82,7 +82,40 @@ const AuthLogin = async (mail,password) => {
     })
 }
 
- 
+const UsersManagment = async () => {
+    consumer.run({
+        eachMessage: async ({message}) => {
+            if(message.value){
+                console.log("Llego una solicitud a Administracion de Usuarios.")
+                var id = JSON.parse(message.value).id
+                if(JSON.parse(message.value).query == "addUser"){
+                    var userAdd = JSON.parse(message.value).newUser
+                    console.log("Producto a añadir:" , userAdd)
+                    var detailsuserAdd = "'"+ userAdd.nombre + "', '" + userAdd.apellido + "'," + userAdd.mail + ',' + userAdd.password + ',' + userAdd.tipo
+                    var query = await getFromDB('INSERT INTO users(nombre,apellido,mail,password,tipo) VALUES ('+detailsuserAdd+');')
+                }
+                if(JSON.parse(message.value).query == "delUser"){
+                    var mailUsuarioDel = JSON.parse(message.value).delUser.mail;
+                    console.log("Usuario de mail: ", mailUsuarioDel, " eliminado correctamente.")
+                    var query = await getFromDB('DELETE FROM users WHERE mail = '+mailUsuarioDel+';')
+                }
+                if(JSON.parse(message.value).query == "editUser"){
+                    console.log("Editando usuario de mail: ", JSON.parse(message.value).editUser.mail)
+                    var updateUser = `
+                    UPDATE users
+                    SET nombre = '`+JSON.parse(message.value).editUser.nombre+`',
+                    apellido = '`+JSON.parse(message.value).editUser.apellido+`',
+                    mail = '`+JSON.parse(message.value).editUser.mail+`',
+                    password = '`+JSON.parse(message.value).editUser.password+`',
+                    tipo = '`+JSON.parse(message.value).editUser.tipo+`'
+                    WHERE mail = `+JSON.parse(message.value).editUser.mail+`
+                    `
+                    var query = await getFromDB(updateUser)
+                }    
+            }
+        }
+    })
+}
 app.listen(port, () => {
     console.log(`Escuchando en puerto: ${port}`);
     Authenticator()
