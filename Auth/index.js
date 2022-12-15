@@ -96,7 +96,7 @@ const UsersManagment = async () => {
                 }
                 if(JSON.parse(message.value).query == "delUser"){
                     var IDUsuarioDel = JSON.parse(message.value).delUser.id;
-                    console.log("Usuario de id: ", mailUsuarioDel, " eliminado correctamente.")
+                    console.log("Usuario de id: ", IDUsuarioDel, " eliminado correctamente.")
                     var query = await getFromDB('DELETE FROM users WHERE id = '+IDUsuarioDel+';')
                 }
                 if(JSON.parse(message.value).query == "editUser"){
@@ -116,6 +116,7 @@ const UsersManagment = async () => {
         }
     })
 }
+
 app.listen(port, () => {
     console.log(`Escuchando en puerto: ${port}`);
     Authenticator()
